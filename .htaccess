@@ -1,0 +1,15 @@
+# Themestrap Blog: pretty links on Apache. Everything here is optional; the blog also works without it.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
+# Never hand out the app internals directly
+RewriteRule ^(lib|data|content|tools)(/|$) - [F,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+<FilesMatch "\.(css|js|woff2|png|jpe?g|gif|webp)$">
+Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+</IfModule>

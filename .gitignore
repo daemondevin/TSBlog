@@ -1,0 +1,6 @@
+data/*
+!data/.htaccess
+!data/.gitkeep
+uploads/*
+!uploads/.htaccess
+!uploads/.gitkeep

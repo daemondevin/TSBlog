@@ -1,0 +1,135 @@
+# Troubleshooting
+
+Find what you see, then follow the fix. A checklist is at the end. Most problems are one folder permission or one setting.
+
+**First stop:** sign in and open **Settings**. The **Health** section at the bottom checks your server and explains in plain words what is wrong and how to fix it.
+
+## Before you can sign in
+
+### I see “One quick change is needed” about PHP
+
+Your hosting runs an old PHP. In your hosting control panel look for **PHP version** or **Select PHP version**, choose 8.1 or higher, and reload.
+
+### The setup page shows a red box, “One thing needs fixing first”
+
+The blog cannot write to a folder. In your file manager, right-click the folder named in the box, choose **Permissions**, and set it to `755`. Click **Check again**. If the box stays, try `775`, then `777`.
+
+### Only the home page works, other addresses say “not found”
+
+That cannot happen with plain links, so check for these:
+
+- You switched Page links to **Always pretty** on a server that cannot do it. Open `yoursite/index.php?r=admin/settings` (this address works on every server), set **Page links** to **Automatic**, and save.
+- You are using a configuration file that forces `'pretty_urls' => 'on'`. Remove that line.
+
+### A blank white page
+
+PHP hit an error and is hiding it. In a file manager, open `data/log.php` (or ask your host for the PHP error log). Or create a `config.php` with `<?php return ['debug' => true];` to see the message on the page, then delete it afterward.
+
+### “The blog could not start”
+
+The message on the page says why. Common ones:
+
+| Message | Fix |
+| - | - |
+| This server does not have SQLite support | Open `yoursite/index.php?r=admin/settings` and choose **Files** for storage, or set `'store' => 'files'` in `config.php` |
+| Anything about a folder | Set that folder's permissions as described above |
+
+### The page has no styling
+
+The `theme/` folder was not uploaded, or Settings names a theme that does not exist (the blog falls back to `default` automatically). Upload the whole `theme` folder again.
+
+### I can’t sign in, or I keep landing back on the sign-in form
+
+- The browser must accept cookies for your site.
+- The blog must be able to write to the `data` folder (see the permissions fix above).
+- After five wrong passwords, wait ten minutes, or delete `data/login.php`.
+
+### I forgot my password
+
+1. In your file manager, delete the file `data/admin.php`.
+2. Open `yoursite/admin`. It asks you to choose a new password, like the first time.
+
+If you set `admin_password_hash` in `config.php`, replace it with a new hash instead (see [Settings](configuration.md#the-optional-configphp)). Because this works by file access, anyone who can write to `data/` can reset the password, so keep that folder private.
+
+## After you are in
+
+### The links are long and look like `index.php?r=…`
+
+Nothing is wrong. Your server uses plain links, which work everywhere. If you want pretty ones and you use Apache, make sure the hidden file `.htaccess` was uploaded, then press **Test my server again** in Settings. See [Hosting](deployment.md#pretty-links).
+
+### My post is not on the site
+
+1. **Status.** A draft is hidden. Open it and click Publish.
+2. **Date.** A future date means scheduled. It appears when the time comes, in your time zone (see Settings).
+3. **Type.** A **Page** appears in the menu, not in the post list.
+4. **Hand-made files.** The file name must be lowercase letters, numbers and dashes, ending `.md` or `.md.php`, and the front matter must start on the first line (after the guard line, in protected files).
+
+### The summary on the home page is wrong
+
+A summary typed in the post settings always wins. Clear it to use the automatic one. Otherwise type `<!--more-->` on its own line where you want the summary to end. See [Writing](writing.md#the-summary-marker).
+
+### “The address … is reserved” or “Another post already uses the address”
+
+Pick another address in the post's settings panel. Reserved names are listed in [Writing](writing.md#reserved-addresses).
+
+### “Your session expired” when saving
+
+You were signed out. Copy your text, reload, and sign in again. The editor also keeps a copy in the browser and offers to restore it.
+
+### “The blog could not save your post”
+
+The `content/posts` folder is not writable. Set its permissions to 755 (or 775/777).
+
+### Picture upload fails
+
+| Message | Cause and fix |
+| - | - |
+| “That picture is too big for this server” | The picture is bigger than the server allows even after shrinking. Use a smaller one, or raise the limits (see [Hosting](deployment.md#php-settings)) |
+| “Please use a JPG, PNG, GIF or WebP picture” | Convert it. SVG and other types are not accepted |
+| “…the uploads folder is not writable” | Set the `uploads` folder's permissions to 755 (or 775/777) |
+| Fails with no message on nginx | nginx's `client_max_body_size` is too small. See [Hosting](deployment.md#php-settings) |
+
+### The sign-in button says “Try again in 9:41”
+
+Five wrong passwords lock sign-in for ten minutes, and the button counts down. To clear it sooner, delete `data/login.php` in your file manager.
+
+### There is no progress bar, or no “keep reading” fade, on posts
+
+Both only appear on post pages (not the home page), and each has a switch under **Settings → Reading aids**. The progress bar hides itself when the whole post fits on the screen, and the fade only shows while there is more of the post below. If the fade shows as a coloured band, your theme's `--ts-ss-fade` does not match its background (see [Themes](themes.md#reading-aids-on-post-pages)).
+
+### The calendar in the post settings looks plain or oversized
+
+It needs the files in `assets/admin/`. Upload that folder again. In a very narrow window it shrinks to fit the settings panel.
+
+### The editor looks unstyled or the toolbar has no icons
+
+Files in `assets/admin/` did not upload. Upload the `assets` folder again, including `assets/admin/fa/webfonts/`.
+
+### The preview is blank
+
+Your session probably expired. Reload and sign in. If it happens again, press F12 in your browser, open the Console, and look for a red message.
+
+### Tables or embeds look wrong in Simple mode
+
+Simple mode keeps most things but not raw HTML or embeds. A post that contains HTML opens in Markdown mode automatically. See [Writing](writing.md#limits-of-simple-mode).
+
+### Backup says the server cannot make zip files
+
+Copy the `content`, `uploads` and `data` folders with your FTP program instead.
+
+## Where the blog records problems
+
+The last 100 problems are written to `data/log.php`, which is private. Settings → Health shows the most recent ones. Open the file in your file manager to read the rest.
+
+## Checklist
+
+Work through these in order and stop at the first that fails.
+
+1. The site address shows the blog, not a server error page.
+2. `yoursite/admin` shows either the setup page or the sign-in form.
+3. Settings → Health shows no red items.
+4. The PHP version in your hosting control panel is 8.1 or newer.
+5. The `data`, `content/posts` and `uploads` folders are set to 755 (or 775/777).
+6. `yoursite/index.php?r=admin` works. If it does and `yoursite/admin` does not, the problem is pretty links: switch Page links to Automatic.
+7. `data/log.php` has no recent entries, or the entries explain the problem.
+8. In your browser, F12 → Network tab shows no red (failed) requests for the page that is misbehaving.
