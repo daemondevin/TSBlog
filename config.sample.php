@@ -33,6 +33,12 @@ return [
     // Content
     // 'allow_html'     => false,                   // raw HTML in posts, for embeds. Sole author only
 
+    // Updates
+    // 'update_url'           => 'https://example.com/updates/latest.json',   // overrides the built in address
+    // 'update_check'         => true,                                         // look for updates when you open the admin
+    // 'update_public_key'    => '',                                           // overrides the built in signing key
+    // 'update_allow_insecure'=> false,                                        // allow http://localhost, for testing only
+
     // Security
     // 'admin_password_hash' => '',                 // from: php -r "echo password_hash('secret', PASSWORD_DEFAULT);"
 

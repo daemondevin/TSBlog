@@ -94,6 +94,15 @@ How many recent posts appear in `/feed.xml` (1 to 100).
 
 Leave empty. The blog works out its own address. Fill it in only when your site sits behind a proxy or CDN that changes the address, or to force `https://`. Include any folder: `https://example.com/blog`.
 
+#### Update address and automatic checks
+
+| Setting | What it does |
+| - | - |
+| Update address | Where to look for new versions (a `latest.json` address). Leave empty to use the one built into your copy |
+| Look for updates automatically | Checks about once a day when you open the admin. Off means only when you press the button |
+
+See [Updates](updates.md).
+
 #### Allow HTML inside posts
 
 Lets posts contain raw HTML, which is how video embeds work. Anyone who can sign in could then run script on your site, so turn it on only when you are the only author. Public pages also then allow `https:` frames in their security policy.
@@ -138,6 +147,10 @@ Every key:
 | `store` | `'files'` | `'files'` or `'sqlite'` |
 | `post_files` | `'auto'` | `'auto'`, `'plain'` or `'protected'` |
 | `allow_html` | `false` | |
+| `update_url` | built in | The update manifest address, `https://` |
+| `update_check` | `true` | Automatic checks when the admin is opened |
+| `update_public_key` | built in | The key update packages must be signed with. `config.php` only |
+| `update_allow_insecure` | `false` | Allow `http://localhost` update addresses, for testing. `config.php` only |
 | `reading_progress` | `true` | Progress bar on post pages |
 | `scroll_shadow` | `true` | “Keep reading” fade and edge shadows on post pages. Loads jQuery and one plugin on post pages |
 | `admin_password_hash` | empty | A hash, from `php -r "echo password_hash('secret', PASSWORD_DEFAULT);"`. Overrides the stored password |

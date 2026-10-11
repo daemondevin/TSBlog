@@ -96,6 +96,8 @@ Everything here is private, and every `.php` file starts with a guard line so it
 | `index.cache.php` | A quick index of your posts. Rebuilt on its own, safe to delete |
 | `log.php` | The last 100 problems the blog recorded |
 | `sessions/` | Who is signed in |
+| `backups/` | The program files replaced by the last two updates, for **Go back** |
+| `updating.lock` | Exists only while an update runs, and is ignored after five minutes |
 | `blog-….db` | The SQLite database, only if you use it |
 
 `index.html` and `.htaccess` files in the private folders keep them from being listed or downloaded on servers that honor them.

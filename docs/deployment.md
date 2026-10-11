@@ -122,11 +122,13 @@ To restore, upload them back. There is nothing to import or rebuild. Because pos
 
 ## Updating
 
-There is no updater and no database to migrate. To update, replace these with the new versions and keep everything else:
+The easiest way is **Settings → Updates**, which checks for a new version, verifies it, installs it, and can go back. See [Updates](updates.md).
+
+To update by hand instead (there is no database to migrate), replace these with the new versions and keep everything else:
 
 | Replace | Keep |
 | - | - |
-| `index.php`, `lib/`, `assets/`, `theme/default/`, `tools/`, `.htaccess`, `.user.ini` | `content/`, `uploads/`, `data/`, `config.php` if you have one, any theme of your own |
+| `index.php`, `lib/`, `assets/`, `theme/default/`, `tools/`, `docs/` | `content/`, `uploads/`, `data/`, `config.php` if you have one, any theme of your own |
 
 If you changed files in `theme/default/`, copy them into a theme of your own first so an update cannot overwrite them. See [Themes](themes.md).
 

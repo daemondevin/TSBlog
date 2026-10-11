@@ -23,6 +23,10 @@ function ts_defaults(): array
         'pretty_urls' => 'auto',     // auto | on | off
         'post_files' => 'auto',      // auto | plain | protected
         'admin_password_hash' => '', 'debug' => false,
+        'update_url' => '',            // where to look for new versions (a latest.json address). Empty uses the built in one
+        'update_check' => true,        // look for updates automatically when you open the admin
+        'update_public_key' => '',     // advanced, config.php only: overrides the built in signing key
+        'update_allow_insecure' => false, // advanced, config.php only: allow http://localhost for testing
     ];
 }
 
@@ -197,6 +201,10 @@ function ts_health(): array
     $exposed = $s['exposed'] ?? null;
     $add($exposed === false ? 'ok' : ($exposed === true ? 'ok' : 'warn'), 'Private files',
         $exposed === false ? 'Your server keeps private folders private.' : ($exposed === true ? 'Your server shows folder contents to visitors, so posts are stored in a protected format automatically.' : 'Posts are stored in a protected format to be safe.'));
+
+    if (function_exists('ts_update_problems') && ts_update_url() !== '' && ($p = ts_update_problems())) {
+        $add('warn', 'Updates', $p[0]);
+    }
 
     $errs = ts_log_lines(3);
     if ($errs) $add('warn', 'Recent errors were recorded', implode(' | ', $errs));

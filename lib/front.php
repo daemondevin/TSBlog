@@ -59,6 +59,14 @@ if ($viaQuery) {
 $seg = $path === '/' ? [] : explode('/', trim($path, '/'));
 $first = $seg[0] ?? '';
 
+// An update is being installed: a short pause beats a half updated page
+if (ts_update_locked()) {
+    header('Retry-After: 10');
+    if (ts_wants_json()) ts_json(['ok' => false, 'message' => 'An update is running right now. Please wait a minute and try again.'], 503);
+    ts_friendly_error('Updating…', 'This site is being updated and will be back in a few seconds. Please reload in a moment.', 503);
+    exit;
+}
+
 if ($path === '/ts-probe') {
     header('Cache-Control: no-store');
     header('Content-Type: text/plain');

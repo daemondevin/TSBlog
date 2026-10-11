@@ -119,6 +119,7 @@ function ts_admin(TSStore $store, array $seg): void
             case 'settings': ts_admin_settings_save(); return;
             case 'password': ts_admin_password(); return;
             case 'probe':    ts_admin_probe(); return;
+            case 'update':   ts_admin_update(); return;
             case 'render':
                 $b = preg_replace('/^[ \t]*<!--more-->[ \t]*$/m', "\n\n@@TSMORE@@\n\n", (string) ($_POST['body'] ?? ''));
                 ts_json(['ok' => true, 'html' => str_replace('<p>@@TSMORE@@</p>', '<hr data-more="1">', ts_render($b))]);
@@ -240,7 +241,11 @@ function ts_settings_clean(array $in, array $cfg): array
         $u = rtrim(trim((string) $in['url']), '/');
         if ($u === '' || preg_match('#^https?://[^\s/]+(/[^\s]*)?$#', $u)) $out['url'] = $u; else $err[] = 'The site address must start with http:// or https://.';
     }
-    foreach (['allow_html', 'reading_progress', 'scroll_shadow'] as $flag) {
+    if (!in_array('update_url', $locked, true) && isset($in['update_url'])) {
+        $u = trim((string) $in['update_url']);
+        if ($u === '' || preg_match('#^https://[^\s/]+(/[^\s]*)?$#', $u)) $out['update_url'] = $u; else $err[] = 'The update address must start with https://.';
+    }
+    foreach (['allow_html', 'reading_progress', 'scroll_shadow', 'update_check'] as $flag) {
         if (!in_array($flag, $locked, true) && isset($in['_form'])) $out[$flag] = !empty($in[$flag]);
     }
     return [$out, $err];
@@ -311,6 +316,19 @@ function ts_admin_probe(): void
         (new TSFileStore($cfg['paths']['content'], $cfg['paths']['data'], ts_effective_guard($new)))->reformat();
     }
     ts_json(['ok' => true, 'pretty' => $state['pretty'], 'exposed' => $state['exposed'] ?? null]);
+}
+
+// Update actions: check (cached or forced), install, restore. Always JSON.
+function ts_admin_update(): void
+{
+    $op = (string) ($_POST['op'] ?? '');
+    if ($op === 'check' || $op === 'check_cached') {
+        $st = ts_update_check($op === 'check');
+        ts_json(['ok' => $st['error'] === '', 'status' => $st, 'message' => $st['error'] !== '' ? $st['error'] : ($st['available'] ? "Version {$st['latest']} is available." : 'You have the latest version.')]);
+    }
+    if ($op === 'install') ts_json(ts_update_install());
+    if ($op === 'restore') ts_json(ts_update_restore());
+    ts_json(['ok' => false, 'message' => 'Unknown update action.'], 400);
 }
 
 function ts_admin_backup(): void

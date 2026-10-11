@@ -109,3 +109,7 @@ details summary{cursor:pointer;font-weight:600;margin:.3rem 0 .9rem}details>labe
   --accent-cyan:var(--accent);--font-ui:inherit}
 .date-pop .ts-calendar{display:flex;border:0;padding:6px 4px;width:100%}.date-pop .ts-cal-day{width:32px;height:32px}
 .date-actions{display:flex;justify-content:space-between;padding:.2rem .6rem .3rem}
+
+/* updates */
+.btn-row{display:flex;gap:.6rem;flex-wrap:wrap}
+.notes{white-space:pre-wrap;font:.85rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:color-mix(in srgb,var(--fg) 6%,transparent);border-radius:8px;padding:.7rem .9rem;margin:0;max-height:14rem;overflow:auto}

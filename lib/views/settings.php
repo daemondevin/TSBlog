@@ -93,6 +93,11 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
 
       <label>Site address <span class="muted">(leave empty to detect automatically)</span><input type="text" name="url" value="<?= e($v('url')) ?>" placeholder="https://example.com"<?= $attr('url') ?>><?= $note('url') ?></label>
 
+      <label>Update address <span class="muted">(leave empty to use the built in one)</span><input type="text" name="update_url" value="<?= e($v('update_url')) ?>" placeholder="https://example.com/updates/latest.json"<?= $attr('update_url') ?>><?= $note('update_url') ?></label>
+
+      <label class="check"><input type="checkbox" name="update_check" value="1"<?= $v('update_check') ? ' checked' : '' ?><?= $attr('update_check') ?>> Look for updates automatically when I open the admin
+        <small class="muted">Contacts the update address about once a day. It sends nothing about your site except the blog's version number.</small><?= $note('update_check') ?></label>
+
       <label class="check"><input type="checkbox" name="allow_html" value="1"<?= $v('allow_html') ? ' checked' : '' ?><?= $attr('allow_html') ?>> Allow HTML inside posts (needed for video embeds)
         <small class="muted">Only turn this on if you are the only person who can sign in.</small><?= $note('allow_html') ?></label>
     </details>
@@ -118,6 +123,29 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
     <?php endif; ?>
   </section>
 
+  <?php $up = ts_update_status(); $problems = ts_update_problems(); $backups = ts_update_backups(); ?>
+  <section class="card-block" id="updates" data-endpoint="<?= e(ts_url('admin/update')) ?>" data-csrf="<?= e($csrf) ?>">
+    <h2>Updates <span class="pill <?= $up['available'] ? 'sched' : 'live' ?>" id="update-pill"><?= $up['available'] ? 'Version ' . e($up['latest']) . ' available' : 'Up to date' ?></span></h2>
+    <p>You have <strong>Themestrap Blog <?= e(TS_VERSION) ?></strong>.</p>
+    <?php if (!$up['configured']): ?>
+      <p class="muted">This copy has no update address. Add one under Advanced options above (or build releases with <code>tools/build-release.php</code>), then updating works from here.</p>
+    <?php else: ?>
+      <p class="muted" id="update-status"><?php
+        if ($up['error']) echo e('The last check failed: ' . $up['error']);
+        elseif ($up['checked_at']) echo e('Last checked ' . date('M j, g:i a', $up['checked_at']) . '. ' . ($up['available'] ? 'A new version is available.' : 'Nothing newer is available.'));
+        else echo 'Not checked yet.'; ?></p>
+      <pre class="notes" id="update-notes"<?= $up['available'] && $up['notes'] ? '' : ' hidden' ?>><?= e($up['notes']) ?></pre>
+      <?php if ($problems): ?><div class="alert" role="alert"><strong>Automatic updating is not available here.</strong><?php foreach ($problems as $p): ?><p><?= e($p) ?></p><?php endforeach; ?></div><?php endif; ?>
+      <div class="btn-row">
+        <button type="button" class="btn" id="update-check">Check for updates</button>
+        <button type="button" class="btn primary" id="update-install"<?= $up['available'] && !$problems ? '' : ' hidden' ?>>Install version <span id="update-install-version"><?= e($up['latest']) ?></span></button>
+        <?php if ($backups): ?><button type="button" class="btn" id="update-restore">Go back to <?= e($backups[0]['from']) ?></button><?php endif; ?>
+      </div>
+      <p class="muted" id="update-msg" role="status"></p>
+      <small class="muted">Updates are signed and checked before anything changes. Your posts, pictures, settings, <code>config.php</code> and custom themes are never touched, and the files that change are backed up first.</small>
+    <?php endif; ?>
+  </section>
+
   <section class="card-block">
     <h2>Backup</h2>
     <p class="muted">Downloads a zip of your posts, pictures and settings. Keep it somewhere safe. To restore, upload its folders back to your site.</p>
@@ -137,3 +165,4 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
 </main>
 <script src="<?= e(ts_file('assets/admin/probe.js')) ?>"></script>
 <script src="<?= e(ts_file('assets/admin/settings.js')) ?>"></script>
+<script src="<?= e(ts_file('assets/admin/update.js')) ?>"></script>

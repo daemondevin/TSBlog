@@ -24,6 +24,8 @@ lib/
   markdown.php         the Markdown renderer
   admin.php            the admin controller
   compat.php           fallbacks for hosts without mbstring or ctype
+  version.php          the installed version, plus the built-in update address and public key
+  update.php           the self updater
   views/               admin templates
 theme/default/         the public theme (templates, style.css, reading.js, post.js, vendor/)
 assets/admin/          admin interface: stylesheet, scripts, Themestrap plugins
@@ -31,6 +33,8 @@ content/posts/         Markdown files (file store)
 uploads/               pictures
 data/                  settings, password, state, caches, log
 tools/migrate.php      copy posts between stores from a terminal
+tools/build-release.php  builds signed update and install packages (publishers)
+release.json           the file list and hashes of the installed release
 ```
 
 Every file in `lib/`, `lib/views/` and `theme/` starts with `defined('TS_ROOT') or exit;`, so none of them does anything when requested directly.
@@ -204,6 +208,21 @@ The forms are real HTML forms, enhanced by `PluginAuth` with the `modx` adapter 
 `ts_wants_json()` makes the choice, and `ts_auth_fail()` and `ts_auth_ok()` in `lib/admin.php` build the replies. During setup, `auth-init.js` adds the browser's time zone and the results of the server tests to the data (`beforeSubmit`). The scripts are external files because the admin's Content Security Policy blocks inline scripts.
 
 Markdown is always the source of truth. Switching to Simple mode renders the Markdown on the server (`/admin/render`) and loads the result. Switching back converts the content to Markdown in the browser. Pictures are shrunk with a canvas before upload when they are large. The public site loads none of this.
+
+## The updater
+
+`lib/update.php` implements the whole flow, and the admin calls it through `POST /admin/update` with `op` set to `check`, `check_cached`, `install` or `restore`. Everything is JSON.
+
+| Step | Where |
+| - | - |
+| Read the manifest (`latest.json`) over HTTPS, cache the result in `data/state.php` for 12 hours | `ts_update_check()` |
+| Download the zip, compare its SHA-256, verify an Ed25519 signature over `tsblog\|version\|sha256` against `TS_UPDATE_KEY` | `ts_update_install()` |
+| Validate every entry (allowed folders, no links or `..`, size limits), match each file to `release.json`, parse every PHP file | `ts_update_install()`, `ts_update_allowed()` |
+| Back up changed and removed files to `data/backups/<id>/`, write the new files (temp file, then rename), verify hashes, delete files the old release listed and the new one does not | `ts_update_install()` |
+| On any failure, put the backup back | `ts_update_rollback()` |
+| Pause the site with `data/updating.lock` (visitors get a 503 with `Retry-After`) | `ts_update_lock()`, `lib/front.php` |
+
+`tools/build-release.php` is the other half. It bakes the version, update address and public key into `lib/version.php`, writes `release.json`, zips the program files, and signs the zip's hash with the secret key.
 
 ## Extending
 

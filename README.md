@@ -21,6 +21,7 @@ That is the whole setup. It works on ordinary shared hosting with no root access
 | Links | Pretty links (`/my-post`) when your server allows them, plain links otherwise. Chosen for you |
 | Safety | Private files stay private even on servers that ignore privacy rules |
 | Backups | One button downloads a zip of everything |
+| Updates | One button checks for a new version, verifies it, installs it, and can go back. Your content is never touched |
 | Reading | A fast, clean theme, an RSS feed, tags, search, dark mode, a reading progress bar and a “keep reading” fade on posts |
 | SEO | Titles, descriptions, social cards, sitemap, structured data |
 | Drafts and scheduling | Built in |
@@ -37,6 +38,7 @@ Requirements: PHP 8.1 or newer (every major host offers it, usually under “PHP
 | [Hosting and deployment](docs/deployment.md) | Shared hosting, what to do if something needs fixing, advanced server rules, backups, updating |
 | [Themes](docs/themes.md) | Restyling and building your own theme |
 | [Storage](docs/storage.md) | Files or SQLite, protected files, where everything lives |
+| [Updates](docs/updates.md) | Installing updates, and publishing releases |
 | [Security](docs/security.md) | What is protected, and what to check |
 | [Architecture](docs/architecture.md) | How it works, for developers |
 | [Troubleshooting](docs/troubleshooting.md) | Plain-language fixes and a checklist |

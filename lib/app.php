@@ -6,6 +6,8 @@ require_once __DIR__ . '/compat.php';
 require_once __DIR__ . '/markdown.php';
 require_once __DIR__ . '/store.php';
 require_once __DIR__ . '/settings.php';
+require_once __DIR__ . '/version.php';
+require_once __DIR__ . '/update.php';
 
 function e($s): string { return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 

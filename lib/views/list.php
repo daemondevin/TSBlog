@@ -6,6 +6,12 @@
     Write your first post with the button below. Two sample items are included. Delete them whenever you like.
   </div>
   <?php endif; ?>
+  <?php $up = ts_update_status(); ?>
+  <div id="update-banner" class="welcome" role="status" data-endpoint="<?= e(ts_url('admin/update')) ?>" data-csrf="<?= e($csrf) ?>" data-settings="<?= e(ts_url('admin/settings')) ?>"
+       data-auto="<?= ts_cfg('update_check') && $up['configured'] && $up['stale'] ? '1' : '0' ?>"<?= $up['available'] ? '' : ' hidden' ?>>
+    <strong>Version <span id="update-version"><?= e($up['latest']) ?></span> is available.</strong>
+    <a href="<?= e(ts_url('admin/settings')) ?>#updates">See what’s new and update</a>
+  </div>
   <div class="list-head">
     <h1>Posts</h1>
     <a class="btn primary" href="<?= e(ts_url('admin/new')) ?>"><i class="fas fa-plus"></i> New post</a>
@@ -33,3 +39,4 @@
   <?php endif; ?>
 </main>
 <script src="<?= e(ts_file('assets/admin/list.js')) ?>"></script>
+<script src="<?= e(ts_file('assets/admin/update.js')) ?>"></script>

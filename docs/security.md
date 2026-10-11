@@ -64,6 +64,10 @@ Test it yourself: open `yoursite/data/admin.php` and `yoursite/config.php`. Each
 | Names | Rebuilt from the original name plus a random suffix, with a safe extension chosen from the detected type |
 | Execution | `uploads/.htaccess` stops script handling on Apache. On other servers, uploads are only ever created as image files |
 
+## Updates
+
+The built-in updater does not trust the network. Every release is signed with an Ed25519 key, and the blog verifies the signature against the key already installed before it unpacks anything. It also checks the download's SHA-256, refuses any file outside the program folders, refuses links and `..` paths, checks that every PHP file parses, and backs up what it replaces. A hacked download server alone cannot push code to your blog. See [Updates](updates.md#how-it-keeps-you-safe).
+
 ## What you should do
 
 1. **Finish setup right after uploading.** The first person to open `/admin` picks the password.
@@ -71,6 +75,7 @@ Test it yourself: open `yoursite/data/admin.php` and `yoursite/config.php`. Each
 3. **Use a strong, unique password.** There is no second factor.
 4. **Keep PHP supported.** Choose a maintained version in your host's control panel.
 5. **Back up** from Settings now and then.
+6. **Keep the blog updated.** Settings → Updates takes a minute.
 
 ## Turning on raw HTML
 

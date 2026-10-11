@@ -117,6 +117,32 @@ Simple mode keeps most things but not raw HTML or embeds. A post that contains H
 
 Copy the `content`, `uploads` and `data` folders with your FTP program instead.
 
+## Updates
+
+### The Updates card says automatic updating is not available
+
+It lists exactly what is missing. The usual causes are no update address (set one under Settings → Advanced), a program folder the blog cannot write to (set it to 755, or 775/777), or a missing PHP extension (`zip` or `sodium`; your host's PHP settings page lists them). You can always update by hand, see [Updates](updates.md#manual-updating).
+
+### “The update’s signature is not valid”
+
+The package was not signed with the key your copy trusts. Either the files on the update server do not match (the publisher should rebuild and re-upload all three files together), or someone is tampering with the download. Nothing was changed.
+
+### “The downloaded update does not match its checksum”
+
+The download was cut short or the files on the server are out of step. Try again. If it repeats, the publisher should re-upload `latest.json` and the zip together.
+
+### “Could not replace …” or “The previous version was put back”
+
+A file could not be written, so the blog restored everything it had changed. Check folder permissions, then try again.
+
+### The site says “Updating…” and stays that way
+
+An update was interrupted. The pause lifts by itself after five minutes. To clear it now, delete `data/updating.lock` in your file manager.
+
+### I installed an update and something looks wrong
+
+Settings → Updates → **Go back**. If the admin itself is broken, restore by hand: copy the files from the newest folder in `data/backups/*/files/` back over the site, keeping the same paths, and delete the files listed under `added` in that folder's `meta.json`.
+
 ## Where the blog records problems
 
 The last 100 problems are written to `data/log.php`, which is private. Settings → Health shows the most recent ones. Open the file in your file manager to read the rest.
