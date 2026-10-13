@@ -32,7 +32,8 @@ The Updates card tells you in plain words if something is missing. Normally noth
 | Need | Why |
 | - | - |
 | An update address and a signing key | Built into releases made with the release tool. Otherwise set the address under Settings → Advanced and the key in `config.php` |
-| The `zip` and `sodium` PHP extensions | To unpack the update and check its signature. Almost every host has both |
+| The `zip` PHP extension | To unpack the update. Almost every host has it |
+| Signature checking | Uses PHP's `sodium` extension when there is one, and a bundled pure-PHP copy when there is not. Nothing to install either way. See [No sodium extension](#no-sodium-extension) |
 | A way to download | cURL, or `allow_url_fopen` |
 | Writable program folders | The same permissions that let the blog save posts. Usually already true on shared hosting |
 
@@ -59,11 +60,19 @@ An update is code that runs on your site, so the blog does not simply trust what
 
 All of these happen before the first file changes, except the last two.
 
+### No sodium extension
+
+Signature checking needs Ed25519. Almost every PHP has it built in (it has shipped with PHP since 7.2), but some hosts compile it out. In that case the blog uses `lib/vendor/sodium_compat`, an open source pure-PHP implementation of the same algorithm (ISC license, bundled unmodified). It gives identical results and takes about a twentieth of a second per check, so you will not notice it. It is only loaded when the extension is missing.
+
+A downloaded program is deliberately *not* used for this. Many hosts forbid running programs from PHP, a binary built for one system will not run on another, and a binary would be one more unverified piece of code sitting in the middle of the thing that decides what code to trust.
+
 ## For the publisher
 
 You publish updates by running one command. It builds the packages, signs them, and writes the manifest. You upload three files anywhere that serves them over HTTPS.
 
 ### One time: make a signing key
+
+The release tool needs the `zip` extension. It uses the `sodium` extension if you have it and the bundled pure-PHP version if you do not.
 
 ```
 php tools/build-release.php --keygen --key release.key

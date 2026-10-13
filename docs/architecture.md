@@ -26,6 +26,7 @@ lib/
   compat.php           fallbacks for hosts without mbstring or ctype
   version.php          the installed version, plus the built-in update address and public key
   update.php           the self updater
+  vendor/              bundled third-party code (sodium_compat, used only when PHP has no sodium extension)
   views/               admin templates
 theme/default/         the public theme (templates, style.css, reading.js, post.js, vendor/)
 assets/admin/          admin interface: stylesheet, scripts, Themestrap plugins
@@ -216,7 +217,7 @@ Markdown is always the source of truth. Switching to Simple mode renders the Mar
 | Step | Where |
 | - | - |
 | Read the manifest (`latest.json`) over HTTPS, cache the result in `data/state.php` for 12 hours | `ts_update_check()` |
-| Download the zip, compare its SHA-256, verify an Ed25519 signature over `tsblog\|version\|sha256` against `TS_UPDATE_KEY` | `ts_update_install()` |
+| Download the zip, compare its SHA-256, verify an Ed25519 signature (`ts_update_sodium()` loads the bundled pure-PHP implementation when the extension is missing) over `tsblog\|version\|sha256` against `TS_UPDATE_KEY` | `ts_update_install()` |
 | Validate every entry (allowed folders, no links or `..`, size limits), match each file to `release.json`, parse every PHP file | `ts_update_install()`, `ts_update_allowed()` |
 | Back up changed and removed files to `data/backups/<id>/`, write the new files (temp file, then rename), verify hashes, delete files the old release listed and the new one does not | `ts_update_install()` |
 | On any failure, put the backup back | `ts_update_rollback()` |

@@ -12,7 +12,7 @@
 //         tsblog-1.0.1-install.zip  a fresh install, with the address and key already built in
 //         latest.json               the manifest. Upload all three files to --url
 //
-// Needs the zip and sodium PHP extensions.
+// Needs the zip PHP extension. The sodium extension is used when present; otherwise lib/vendor/sodium_compat is.
 
 if (PHP_SAPI !== 'cli') { http_response_code(403); exit; }
 
@@ -20,7 +20,12 @@ $root = dirname(__DIR__);
 $opt = getopt('', ['keygen', 'version:', 'url:', 'key:', 'notes:', 'notes-file:', 'min-php:', 'out:']);
 $fail = function (string $m) { fwrite(STDERR, "Error: $m\n"); exit(1); };
 
-if (!extension_loaded('sodium')) $fail('The sodium PHP extension is required.');
+// Without the sodium extension, the bundled pure PHP version is used (slower, same result)
+if (!function_exists('sodium_crypto_sign_keypair')) {
+    $fallback = $root . '/lib/vendor/sodium_compat/autoload.php';
+    if (!is_file($fallback)) $fail('The sodium PHP extension is required, and lib/vendor/sodium_compat is missing.');
+    require $fallback;
+}
 if (!class_exists('ZipArchive')) $fail('The zip PHP extension is required.');
 
 if (isset($opt['keygen'])) {
@@ -91,7 +96,7 @@ foreach ($contents as $rel => $data) {
 $hashes = [];
 foreach ($contents as $rel => $data) $hashes[$rel] = hash('sha256', $data);
 ksort($hashes);
-$release = json_encode(['name' => 'TSBlog', 'version' => $version, 'released' => date('Y-m-d'), 'files' => $hashes], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+$release = json_encode(['name' => 'Themestrap Blog', 'version' => $version, 'released' => date('Y-m-d'), 'files' => $hashes], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
 function write_zip(string $path, array $contents, string $release, array $extra = []): void
 {
@@ -118,7 +123,7 @@ write_zip("$out/tsblog-$version-install.zip", $contents, $release, $extra);
 $sha = hash_file('sha256', $updateZip);
 $sig = base64_encode(sodium_crypto_sign_detached("tsblog|$version|$sha", $secret));
 $manifest = [
-    'name' => 'TSBlog', 'version' => $version, 'released' => date('Y-m-d'), 'min_php' => $opt['min-php'] ?? '8.1.0',
+    'name' => 'Themestrap Blog', 'version' => $version, 'released' => date('Y-m-d'), 'min_php' => $opt['min-php'] ?? '8.1.0',
     'zip' => "$url/tsblog-$version.zip", 'sha256' => $sha, 'size' => filesize($updateZip), 'signature' => $sig, 'notes' => $notes,
 ];
 file_put_contents("$out/latest.json", json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");

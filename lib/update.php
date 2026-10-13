@@ -15,6 +15,20 @@ const TS_UPDATE_MAX_ZIP   = 52428800;   // 50 MB
 const TS_UPDATE_MAX_FILE  = 20971520;   // 20 MB
 const TS_UPDATE_MAX_FILES = 3000;
 
+// Uses PHP's sodium extension when it exists, otherwise the bundled pure PHP implementation (a little slower)
+function ts_update_sodium(): bool
+{
+    static $ok = null;
+    if ($ok !== null) return $ok;
+    if (!function_exists('sodium_crypto_sign_verify_detached')) {
+        $f = TS_ROOT . '/lib/vendor/sodium_compat/autoload.php';
+        if (is_file($f)) {
+            try { require_once $f; } catch (Throwable $e) { ts_log('Could not load the signature fallback: ' . $e->getMessage()); }
+        }
+    }
+    return $ok = function_exists('sodium_crypto_sign_verify_detached') && defined('SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES');
+}
+
 function ts_update_url(): string
 {
     return trim((string) ts_cfg('update_url', '')) ?: TS_UPDATE_URL;
@@ -65,7 +79,7 @@ function ts_update_problems(): array
     if (ts_update_url() === '') $p[] = 'This copy has no update address. Add one under Settings → Advanced.';
     elseif (!ts_update_url_ok(ts_update_url())) $p[] = 'The update address must start with https://.';
     if (ts_update_key() === '') $p[] = 'This copy has no update signing key, so it cannot check that an update is genuine.';
-    if (!function_exists('sodium_crypto_sign_verify_detached')) $p[] = 'This server lacks the “sodium” PHP extension used to check update signatures.';
+    if (!ts_update_sodium()) $p[] = 'The blog cannot check update signatures here: this server has no “sodium” PHP extension and the bundled replacement (lib/vendor/sodium_compat) is missing. Upload the lib folder again.';
     if (!class_exists('ZipArchive')) $p[] = 'This server lacks the “zip” PHP extension used to unpack updates.';
     if (!function_exists('curl_init') && !ini_get('allow_url_fopen')) $p[] = 'This server cannot download files (neither cURL nor allow_url_fopen is available).';
     if ($bad = ts_update_unwritable()) $p[] = 'The blog cannot write to: ' . implode(', ', $bad) . '. Set those folders’ permissions to 755 (or 775/777) to allow updates.';

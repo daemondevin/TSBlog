@@ -121,7 +121,7 @@ Copy the `content`, `uploads` and `data` folders with your FTP program instead.
 
 ### The Updates card says automatic updating is not available
 
-It lists exactly what is missing. The usual causes are no update address (set one under Settings → Advanced), a program folder the blog cannot write to (set it to 755, or 775/777), or a missing PHP extension (`zip` or `sodium`; your host's PHP settings page lists them). You can always update by hand, see [Updates](updates.md#manual-updating).
+It lists exactly what is missing. The usual causes are no update address (set one under Settings → Advanced), a program folder the blog cannot write to (set it to 755, or 775/777), or the `zip` PHP extension being missing (your host's PHP settings page lists extensions). A missing `sodium` extension is not a problem, the blog carries its own copy. You can always update by hand, see [Updates](updates.md#manual-updating).
 
 ### “The update’s signature is not valid”
 
