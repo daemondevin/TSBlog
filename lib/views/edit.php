@@ -46,7 +46,7 @@ $A = ts_file('assets/admin');
         <input id="f-date" type="hidden" value="<?= e(date('Y-m-d\TH:i', strtotime($p['date']))) ?>">
         <div class="date-row">
           <button type="button" class="btn" id="date-toggle" aria-expanded="false" aria-controls="date-pop" aria-describedby="date-hint"><i class="fas fa-calendar-days"></i> <span id="date-label"></span></button>
-          <input id="f-time" type="time" aria-label="Publish time" value="<?= e(date('H:i', strtotime($p['date']))) ?>">
+          <input id="f-time" type="text" aria-label="Publish time" value="<?= e(date('H:i', strtotime($p['date']))) ?>" data-plugin-timepicker class="manual">
         </div>
         <div id="date-pop" class="date-pop" hidden>
           <div id="f-cal" class="manual"></div>
@@ -54,12 +54,11 @@ $A = ts_file('assets/admin');
         </div>
         <small class="muted" id="date-hint"></small>
       </div>
-      <label>Type
-        <select id="f-type">
+      <div class="field"><span class="lbl" id="lbl-f-type">Type</span>
+        <div data-plugin-select class="manual"><select id="f-type">
           <option value="post"<?= $p['type'] === 'post' ? ' selected' : '' ?>>Post (appears in the feed)</option>
           <option value="page"<?= $p['type'] === 'page' ? ' selected' : '' ?>>Page (appears in the menu)</option>
-        </select>
-      </label>
+        </select></div></div>
       <label>Tags
         <input id="f-tags" type="text" class="manual" value="<?= e(implode(', ', $p['tags'])) ?>">
       </label>
@@ -82,17 +81,6 @@ $A = ts_file('assets/admin');
   </div>
 </form>
 
-<div id="confirm" data-plugin-dialog class="manual" hidden>
-  <div data-dialog-backdrop></div>
-  <div data-dialog-panel class="dialog-sm">
-    <h2 data-dialog-title>Delete this post?</h2>
-    <p data-dialog-description>This removes it from your site for good. It cannot be undone.</p>
-    <div class="dlg-btns">
-      <button type="button" class="btn" data-dialog-close>Keep it</button>
-      <button type="button" class="btn warn" id="confirm-yes">Delete</button>
-    </div>
-  </div>
-</div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="<?= e($A) ?>/jquery.min.js"></script>
@@ -103,5 +91,8 @@ $A = ts_file('assets/admin');
 <script src="<?= e($A) ?>/themestrap/themestrap.plugin.markdown.js"></script>
 <script src="<?= e($A) ?>/themestrap/themestrap.plugin.richeditor.js"></script>
 <script src="<?= e($A) ?>/themestrap/themestrap.plugin.calendar.js"></script>
+<script src="<?= e($A) ?>/themestrap/themestrap.plugin.select.js"></script>
+<script src="<?= e($A) ?>/themestrap/themestrap.plugin.timepicker.js"></script>
 <script src="<?= e($A) ?>/themestrap/themestrap.plugin.markdowneditor.js"></script>
+<script src="<?= e($A) ?>/prompts.js"></script>
 <script src="<?= e($A) ?>/editor.js"></script>

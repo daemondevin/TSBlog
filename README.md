@@ -59,4 +59,4 @@ docs/              this documentation
 
 ## The admin and Themestrap
 
-The admin is built from Themestrap plugins: `PluginAuth` (sign-in and setup), `PluginCalendar` (publish date), `PluginMarkdownEditor`, `PluginRichEditor`, `PluginTagsInput`, `PluginDialog`, `PluginToolbar` and `PluginMarkdown`. Copies live in `assets/admin/themestrap/` so the blog is self-contained. The public site loads only one plugin, `PluginScrollShadow`, and only on post pages (you can switch it off in Settings).
+The admin is built from Themestrap plugins: `PluginAuth` (sign-in and setup), `PluginCalendar` and `PluginTimePicker` (publish date and time), `PluginSelect` (every dropdown), `PluginNumberInput` (the number fields), `PluginDialog` (every question and notice), `PluginMarkdownEditor`, `PluginRichEditor`, `PluginTagsInput`, `PluginToolbar` and `PluginMarkdown`. Copies live in `assets/admin/themestrap/` so the blog is self-contained. The public site loads only one plugin, `PluginScrollShadow`, and only on post pages (you can switch it off in Settings).

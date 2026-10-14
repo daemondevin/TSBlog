@@ -78,7 +78,7 @@ The release tool needs the `zip` extension. It uses the `sodium` extension if yo
 php tools/build-release.php --keygen
 ```
 
-This writes the **secret** key to `~/.tsblog/release.key` (`%USERPROFILE%\.tsblog\release.key` on Windows), with a matching `release.key.pub`, and prints the public key. The key is deliberately kept **outside the blog folder**.
+This writes the **secret** key to `~/.tsblog/release.key` (`%USERPROFILE%\.tsblog\release.key` on Windows), with a matching `release.key.pub`, and prints the public key and its fingerprint. The key is deliberately kept **outside the blog folder**.
 
 Keep the secret key private and make a backup. Whoever holds it can publish updates to every copy of your blog, and if you lose it you cannot publish.
 
@@ -93,11 +93,12 @@ The tool protects you, in layers:
 | Refuses key-like files | Any `.key`, `.pem`, `.pub` or `.env` file in a published folder stops the build, naming the file |
 | Scans for the key itself | If the secret appears inside any file about to ship (pasted into a doc, say), the build stops |
 | Never packages `dist/` or the tool itself | Release output and `tools/build-release.php` are left out of every package. Blogs only receive `tools/migrate.php` |
+| Remembers which key each address uses | Refuses to sign with a different key than the one blogs already trust (see below) |
 | `.gitignore` | Ignores `release.key*`, `*.key`, `*.pem`, `.env` and `dist/`, so a key cannot be committed by accident |
 
 The updater on each blog also refuses any package that contains key-like files or a `dist/` folder, so such a package would not install even if one were built by other means.
 
-If a key is ever published or committed, treat it as compromised: make a new key, release a new version signed with the new key right away (blogs trust the old key until they install it), and tell users to update promptly.
+If a key is ever published or committed, treat it as compromised and change keys as described below, publishing the rotation release right away.
 
 ### Each release
 
@@ -157,9 +158,31 @@ Blogs update themselves only if they know where to look and whose signature to t
 'update_public_key' => 'PASTE-THE-PUBLIC-KEY',
 ```
 
+### Keys and fingerprints
+
+Every blog trusts exactly one signing key, the one baked into it when it was built. A release signed with any other key is refused with "The update's signature is not valid", even if everything else is perfect. That makes it important to always sign with the same key.
+
+Each key has a short **fingerprint**. The Updates card shows the one your blog trusts ("This blog trusts signing key …"), and the release tool prints the same one:
+
+```
+php tools/build-release.php --show-key
+```
+
+If the two differ, the blog will refuse the release. The card warns you about this *before* you click Install, and the release tool remembers which key each update address was last signed with and **refuses to sign with a different one** unless you say so. That stops the most common mistake: generating a second key and building with it.
+
 ### Changing the signing key
 
-Build the next release with a new key file. Blogs verify it with the key they already have, install it, and from then on trust the new key (it is part of the release). Do this if you ever suspect the old key was exposed.
+Do this if a key was exposed, or you want a new one. Blogs only accept a release signed with the key they *already* trust, so the release that introduces a new key must be signed with the **old** key and carry the **new** one:
+
+```
+php tools/build-release.php --keygen --key /path/to/new.key
+php tools/build-release.php --version 1.1.0 --url https://example.com/blog-updates \
+     --key /path/to/old.key --rotate-to /path/to/new.key
+```
+
+Blogs verify it with the old key, install it, and from then on trust the new key. Build every release after that with the new key. Publish the rotation release as soon as you can: until blogs install it, anyone with the old key can still publish to them.
+
+Building with a new key *without* `--rotate-to` produces a release no existing blog will accept. The tool stops you; `--allow-new-key` overrides that and means every blog must then be updated by hand once.
 
 ### Rolling back a bad release
 

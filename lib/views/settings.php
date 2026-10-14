@@ -31,17 +31,20 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
 
     <h2>Reading</h2>
     <div class="grid2">
-      <label>Posts per page<input type="number" name="posts_per_page" min="1" max="50" value="<?= (int) $v('posts_per_page') ?>"<?= $attr('posts_per_page') ?>><?= $note('posts_per_page') ?></label>
-      <label>Date style
-        <select name="date_format"<?= $attr('date_format') ?>>
+      <label>Posts per page<input type="number" name="posts_per_page" min="1" max="50" data-plugin-numberinput data-plugin-options='{"unit":"posts"}' value="<?= (int) $v('posts_per_page') ?>"<?= $attr('posts_per_page') ?>><?= $note('posts_per_page') ?></label>
+      <div class="field"><span class="lbl" id="lbl-date_format">Date style</span>
+        <div data-plugin-select class="manual"><select name="date_format"<?= $attr('date_format') ?>>
           <?php foreach (ts_date_formats() as $f => $label): ?><option value="<?= e($f) ?>"<?= $v('date_format') === $f ? ' selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?>
-        </select><?= $note('date_format') ?>
-      </label>
-      <label>Time zone <span class="muted">(decides when scheduled posts go live)</span>
-        <select name="timezone"<?= $attr('timezone') ?>>
-          <?php foreach (DateTimeZone::listIdentifiers() as $tz): ?><option<?= $v('timezone') === $tz ? ' selected' : '' ?>><?= e($tz) ?></option><?php endforeach; ?>
-        </select><?= $note('timezone') ?>
-      </label>
+        </select></div><?= $note('date_format') ?>
+      </div>
+      <div class="field"><span class="lbl" id="lbl-timezone">Time zone <span class="muted">(decides when scheduled posts go live)</span></span>
+        <div data-plugin-select class="manual"><select name="timezone"<?= $attr('timezone') ?>>
+          <?php
+          $zones = [];
+          foreach (DateTimeZone::listIdentifiers() as $tz) { $parts = explode('/', $tz, 2); $zones[count($parts) > 1 ? $parts[0] : 'Other'][] = [$tz, count($parts) > 1 ? $parts[1] : $tz]; }
+          foreach ($zones as $region => $list): ?><optgroup label="<?= e($region) ?>"><?php foreach ($list as [$tz, $name]): ?><option value="<?= e($tz) ?>"<?= $v('timezone') === $tz ? ' selected' : '' ?>><?= e(str_replace('_', ' ', $name)) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?>
+        </select></div><?= $note('timezone') ?>
+      </div>
       <label>Language code<input type="text" name="language" maxlength="12" value="<?= e($v('language')) ?>" list="langs"<?= $attr('language') ?>><?= $note('language') ?>
         <datalist id="langs"><?php foreach (['en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'sv', 'pl', 'ja', 'zh', 'ko', 'ar', 'he'] as $l): ?><option value="<?= $l ?>"><?php endforeach; ?></datalist>
       </label>
@@ -57,39 +60,39 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
 
       <label>Footer line<input type="text" name="footer" maxlength="200" value="<?= e($v('footer')) ?>"<?= $attr('footer') ?>><?= $note('footer') ?></label>
 
-      <label>Page links
-        <select name="pretty_urls"<?= $attr('pretty_urls') ?>>
+      <div class="field"><span class="lbl" id="lbl-pretty_urls">Page links</span>
+        <div data-plugin-select class="manual"><select name="pretty_urls"<?= $attr('pretty_urls') ?>>
           <option value="auto"<?= $v('pretty_urls') === 'auto' ? ' selected' : '' ?>>Automatic (recommended)</option>
           <option value="on"<?= $v('pretty_urls') === 'on' ? ' selected' : '' ?>>Always pretty: /my-post</option>
           <option value="off"<?= $v('pretty_urls') === 'off' ? ' selected' : '' ?>>Always plain: index.php?r=my-post</option>
-        </select>
+        </select></div>
         <small class="muted">Right now: <strong><?= $cfg['pretty'] ? 'pretty' : 'plain' ?></strong> links. If you pick “Always pretty” and links stop working, open <code>index.php?r=admin/settings</code> on your site and switch back to Automatic.</small><?= $note('pretty_urls') ?>
-      </label>
+      </div>
 
-      <label>Where posts are kept
-        <select name="store"<?= $attr('store') ?>>
+      <div class="field"><span class="lbl" id="lbl-store">Where posts are kept</span>
+        <div data-plugin-select class="manual"><select name="store"<?= $attr('store') ?>>
           <option value="files"<?= $v('store') === 'files' ? ' selected' : '' ?>>Files (one per post, easy to back up)</option>
           <option value="sqlite"<?= $v('store') === 'sqlite' ? ' selected' : '' ?><?= $sqliteOk ? '' : ' disabled' ?>>SQLite (one file)<?= $sqliteOk ? '' : ' — not available on this server' ?></option>
-        </select>
+        </select></div>
         <small class="muted">Switching copies your posts across automatically.</small><?= $note('store') ?>
-      </label>
+      </div>
 
-      <label>Post file format
-        <select name="post_files"<?= $attr('post_files') ?>>
+      <div class="field"><span class="lbl" id="lbl-post_files">Post file format</span>
+        <div data-plugin-select class="manual"><select name="post_files"<?= $attr('post_files') ?>>
           <option value="auto"<?= $v('post_files') === 'auto' ? ' selected' : '' ?>>Automatic (recommended)</option>
           <option value="plain"<?= $v('post_files') === 'plain' ? ' selected' : '' ?>>Plain .md files</option>
           <option value="protected"<?= $v('post_files') === 'protected' ? ' selected' : '' ?>>Protected .md.php files</option>
-        </select>
+        </select></div>
         <small class="muted">Protected files can never be downloaded by visitors, even on servers that ignore privacy rules. Plain files are nicer for editing by hand or using git. Automatic picks the right one for your server.</small><?= $note('post_files') ?>
-      </label>
+      </div>
 
-      <label>Theme
-        <select name="theme"<?= $attr('theme') ?>>
-          <?php foreach (glob(TS_ROOT . '/theme/*', GLOB_ONLYDIR) ?: [] as $d): $n = basename($d); ?><option<?= $v('theme') === $n ? ' selected' : '' ?>><?= e($n) ?></option><?php endforeach; ?>
-        </select><?= $note('theme') ?>
-      </label>
+      <div class="field"><span class="lbl" id="lbl-theme">Theme</span>
+        <div data-plugin-select class="manual"><select name="theme"<?= $attr('theme') ?>>
+          <?php foreach (glob(TS_ROOT . '/theme/*', GLOB_ONLYDIR) ?: [] as $d): $n = basename($d); ?><option value="<?= e($n) ?>"<?= $v('theme') === $n ? ' selected' : '' ?>><?= e($n) ?></option><?php endforeach; ?>
+        </select></div><?= $note('theme') ?>
+      </div>
 
-      <label>Posts in the RSS feed<input type="number" name="feed_items" min="1" max="100" value="<?= (int) $v('feed_items') ?>"<?= $attr('feed_items') ?>><?= $note('feed_items') ?></label>
+      <label>Posts in the RSS feed<input type="number" name="feed_items" min="1" max="100" data-plugin-numberinput data-plugin-options='{"unit":"posts"}' value="<?= (int) $v('feed_items') ?>"<?= $attr('feed_items') ?>><?= $note('feed_items') ?></label>
 
       <label>Site address <span class="muted">(leave empty to detect automatically)</span><input type="text" name="url" value="<?= e($v('url')) ?>" placeholder="https://example.com"<?= $attr('url') ?>><?= $note('url') ?></label>
 
@@ -136,10 +139,13 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
         elseif ($up['checked_at']) echo e('Last checked ' . date('M j, g:i a', $up['checked_at']) . '. ' . ($up['available'] ? 'A new version is available.' : 'Nothing newer is available.'));
         else echo 'Not checked yet.'; ?></p>
       <pre class="notes" id="update-notes"<?= $up['available'] && $up['notes'] ? '' : ' hidden' ?>><?= e($up['notes']) ?></pre>
+      <?php if ($up['trusted_key']): ?><p class="muted">This blog trusts signing key <code id="update-trusted"><?= e($up['trusted_key']) ?></code>.</p><?php endif; ?>
+      <div class="alert" role="alert" id="update-keywarn"<?= $up['key_mismatch'] ? '' : ' hidden' ?>><strong>This release cannot be installed automatically.</strong>
+        <p>It was signed with key <code id="update-releasekey"><?= e($up['release_key']) ?></code>, but this blog trusts key <code><?= e($up['trusted_key']) ?></code>. Blogs only accept releases signed with the key they already trust. The publisher should rebuild the release with the original key, or change keys with <code>--rotate-to</code>. You can also update by hand once (see <a href="<?= e(ts_url('admin/settings')) ?>">docs/updates.md</a>).</p></div>
       <?php if ($problems): ?><div class="alert" role="alert"><strong>Automatic updating is not available here.</strong><?php foreach ($problems as $p): ?><p><?= e($p) ?></p><?php endforeach; ?></div><?php endif; ?>
       <div class="btn-row">
         <button type="button" class="btn" id="update-check">Check for updates</button>
-        <button type="button" class="btn primary" id="update-install"<?= $up['available'] && !$problems ? '' : ' hidden' ?>>Install version <span id="update-install-version"><?= e($up['latest']) ?></span></button>
+        <button type="button" class="btn primary" id="update-install"<?= $up['available'] && !$problems && !$up['key_mismatch'] ? '' : ' hidden' ?>>Install version <span id="update-install-version"><?= e($up['latest']) ?></span></button>
         <?php if ($backups): ?><button type="button" class="btn" id="update-restore">Go back to <?= e($backups[0]['from']) ?></button><?php endif; ?>
       </div>
       <p class="muted" id="update-msg" role="status"></p>
@@ -164,6 +170,14 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
     <button class="btn" type="button" id="recheck" data-probe="<?= e($probe) ?>">Test my server again</button> <span id="recheck-msg" class="muted"></span>
   </section>
 </main>
+<?php $A = ts_file('assets/admin'); ?>
+<script src="<?= e($A) ?>/jquery.min.js"></script>
+<script src="<?= e($A) ?>/themestrap/namespace.js"></script>
+<script src="<?= e($A) ?>/themestrap/themestrap.plugin.dialog.js"></script>
+<script src="<?= e($A) ?>/themestrap/themestrap.plugin.select.js"></script>
+<script src="<?= e($A) ?>/themestrap/themestrap.plugin.numberinput.js"></script>
+<script src="<?= e($A) ?>/prompts.js"></script>
+<script src="<?= e($A) ?>/settings-ui.js"></script>
 <script src="<?= e(ts_file('assets/admin/probe.js')) ?>"></script>
 <script src="<?= e(ts_file('assets/admin/settings.js')) ?>"></script>
 <script src="<?= e(ts_file('assets/admin/update.js')) ?>"></script>

@@ -23,7 +23,8 @@
       el('update-pill').textContent = st.available ? 'Version ' + st.latest + ' available' : 'Up to date';
       el('update-pill').className = 'pill ' + (st.available ? 'sched' : 'live');
       el('update-install-version').textContent = st.latest;
-      if (el('update-install')) el('update-install').hidden = !st.available;
+      if (el('update-install')) el('update-install').hidden = !st.available || !!st.key_mismatch;
+      if (el('update-keywarn')) { el('update-keywarn').hidden = !st.key_mismatch; if (el('update-releasekey')) el('update-releasekey').textContent = st.release_key || ''; }
       el('update-notes').textContent = st.notes || '';
       el('update-notes').hidden = !(st.available && st.notes);
       el('update-status').textContent = st.error ? 'The last check failed: ' + st.error : (st.available ? 'A new version is available.' : 'Nothing newer is available.');
@@ -35,6 +36,9 @@
     post('check_cached').then(function (j) { paint(j.status); }).catch(function () {});
   }
   if (!card) return;
+
+  // Without an update address the card has no buttons, so there is nothing to wire up
+  if (!el('update-check')) return;
 
   var msg = el('update-msg');
   function busy(on, text) {
@@ -48,21 +52,38 @@
       .catch(function () { busy(false, 'The check could not run.'); });
   });
 
+  function ask(opts) {
+    return window.tsPrompt ? window.tsPrompt.confirm(opts) : Promise.resolve(window.confirm(opts.message));
+  }
+
   if (el('update-install')) el('update-install').addEventListener('click', function () {
-    if (!window.confirm('Install the update now? The site pauses for a few seconds. Your posts, pictures and settings are not touched, and you can go back afterwards.')) return;
-    busy(true, 'Downloading and checking the update…');
-    post('install').then(function (j) {
-      if (j.ok) { msg.textContent = j.message + ' Reloading…'; setTimeout(function () { location.reload(); }, 900); }
-      else busy(false, j.message);
-    }).catch(function () { busy(false, 'The update could not be completed. Reload the page to see where things stand.'); });
+    var version = el('update-install-version') ? el('update-install-version').textContent : '';
+    ask({
+      title: 'Install version ' + version + '?',
+      message: 'The site pauses for a few seconds. Your posts, pictures and settings are not touched, and you can go back afterwards.',
+      confirmLabel: 'Install update', cancelLabel: 'Not now'
+    }).then(function (yes) {
+      if (!yes) return;
+      busy(true, 'Downloading and checking the update…');
+      post('install').then(function (j) {
+        if (j.ok) { msg.textContent = j.message + ' Reloading…'; setTimeout(function () { location.reload(); }, 900); }
+        else busy(false, j.message);
+      }).catch(function () { busy(false, 'The update could not be completed. Reload the page to see where things stand.'); });
+    });
   });
 
   if (el('update-restore')) el('update-restore').addEventListener('click', function () {
-    if (!window.confirm('Go back to the previous version?')) return;
-    busy(true, 'Restoring…');
-    post('restore').then(function (j) {
-      if (j.ok) { msg.textContent = j.message + ' Reloading…'; setTimeout(function () { location.reload(); }, 900); }
-      else busy(false, j.message);
-    }).catch(function () { busy(false, 'Could not go back. Reload the page.'); });
+    ask({
+      title: 'Go back to the previous version?',
+      message: 'The files the last update changed are put back exactly as they were. Your posts, pictures and settings are not touched.',
+      confirmLabel: 'Go back', cancelLabel: 'Stay on this version'
+    }).then(function (yes) {
+      if (!yes) return;
+      busy(true, 'Restoring…');
+      post('restore').then(function (j) {
+        if (j.ok) { msg.textContent = j.message + ' Reloading…'; setTimeout(function () { location.reload(); }, 900); }
+        else busy(false, j.message);
+      }).catch(function () { busy(false, 'Could not go back. Reload the page.'); });
+    });
   });
 })();

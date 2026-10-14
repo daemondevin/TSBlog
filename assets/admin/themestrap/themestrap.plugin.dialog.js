@@ -36,6 +36,16 @@
  *   dlg.close();
  *   dlg.toggle();
  *
+ * Prompts (replace window.confirm and window.alert, no markup needed):
+ *   themestrap.PluginDialog.confirm({ title: 'Delete this post?', message: 'This cannot be undone.',
+ *                                     confirmLabel: 'Delete', cancelLabel: 'Keep it', danger: true })
+ *       .then(function (yes) { if (yes) { ... } });
+ *   themestrap.PluginDialog.alert({ title: 'Saved', message: 'Your changes are live.' })
+ *       .then(function () { ... });
+ *   Both return a Promise. confirm resolves true or false (Escape, backdrop and Cancel resolve false).
+ *   A plain string is shorthand for { message }. Text is inserted as text, never as HTML.
+ *   danger: true focuses Cancel instead of the confirm button and styles the confirm button as destructive.
+ *
  * Events fired on the dialog root element:
  *   dialog:open   — after open animation starts   (receives instance as arg)
  *   dialog:close  — after close animation ends     (receives instance as arg)
@@ -286,6 +296,18 @@ body.ts-scroll-lock {
     [data-dialog-description] {
         color: #9ca3af;
     }
+}
+
+/* Prompts built by PluginDialog.confirm() and PluginDialog.alert() */
+.ts-dlg-prompt [data-dialog-panel] { max-width: 26rem; padding: 1.5rem; }
+.ts-dlg-prompt [data-dialog-description] { margin-bottom: 0; white-space: pre-line; }
+.ts-dlg-prompt [data-dialog-description]:empty { display: none; }
+.ts-dlg-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
 }
 `;
 
@@ -551,6 +573,12 @@ body.ts-scroll-lock {
         }
 
         _focusFirst() {
+            // An element marked data-dialog-autofocus wins, so prompts can pick a safe default button
+            const $pref = this.$el.find('[data-dialog-autofocus]').first();
+            if ($pref.length) {
+                $pref.trigger('focus');
+                return;
+            }
             const focusable = this._focusable();
             if (focusable.length) {
                 focusable.first().trigger('focus');
@@ -602,6 +630,68 @@ body.ts-scroll-lock {
             return this;
         }
     }
+
+    const PROMPT_DEFAULTS = {
+        title:           '',
+        message:         '',
+        confirmLabel:    'OK',
+        cancelLabel:     'Cancel',
+        danger:          false,       // destructive action: Cancel is focused first
+        closeOnBackdrop: true,
+        closeOnEscape:   true,
+        classes: {
+            confirm: 'btn btn-primary',
+            danger:  'btn btn-danger',
+            cancel:  'btn btn-light',
+            actions: ''
+        }
+    };
+
+    // Builds a throwaway dialog, resolves when it closes, then removes every trace of it
+    function prompt(kind, input) {
+        const o = $.extend(true, {}, PROMPT_DEFAULTS, typeof input === 'string' ? { message: input } : input);
+        if (!o.title) o.title = kind === 'alert' ? 'Notice' : 'Are you sure?';
+
+        return new Promise((resolve) => {
+            let result = false;
+
+            const $root  = $('<div data-plugin-dialog class="manual ts-dlg-prompt" role="alertdialog"></div>');
+            const $panel = $('<div data-dialog-panel></div>').appendTo($root);
+            $('<h2 data-dialog-title></h2>').text(o.title).appendTo($panel);
+            $('<p data-dialog-description></p>').text(o.message).appendTo($panel);
+
+            const $actions = $('<div class="ts-dlg-actions"></div>').addClass(o.classes.actions).appendTo($panel);
+            let $cancel = $();
+            if (kind === 'confirm') {
+                $cancel = $('<button type="button" data-dialog-close></button>')
+                    .addClass(o.classes.cancel).text(o.cancelLabel).appendTo($actions);
+            }
+            const $ok = $('<button type="button" data-dialog-ok></button>')
+                .addClass(o.danger ? o.classes.danger : o.classes.confirm).text(o.confirmLabel).appendTo($actions);
+
+            // Safe default focus: Cancel for destructive prompts, otherwise the confirm button
+            ($cancel.length && o.danger ? $cancel : $ok).attr('data-dialog-autofocus', '');
+
+            $root.appendTo(document.body);
+            $root.themestrapPluginDialog({
+                closeOnBackdrop: o.closeOnBackdrop,
+                closeOnEscape:   o.closeOnEscape
+            });
+            const dlg = $root.data(instanceName);
+
+            $ok.on('click', () => { result = true; dlg.close(); });
+            $root.on('dialog:close', () => {
+                dlg.destroy();
+                $root.remove();
+                resolve(kind === 'alert' ? true : result);
+            });
+
+            dlg.open();
+        });
+    }
+
+    PluginDialog.confirm = (opts) => prompt('confirm', opts);
+    PluginDialog.alert   = (opts) => prompt('alert', opts);
 
     PluginDialog.defaults = {
         closeOnBackdrop  : true,    // close when [data-dialog-backdrop] is clicked

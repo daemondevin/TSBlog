@@ -78,8 +78,12 @@
 
   var tags = $('#f-tags').themestrapPluginTagsInput({ placeholder: 'Add a tag and press Enter', validateEmail: false }) && $('#f-tags').data('__tagsinput');
 
-  var dialog = $('#confirm').themestrapPluginDialog({ closeOnBackdrop: true, scrollLock: true }) && $('#confirm').data('__pluginDialog');
-  $('#confirm').removeAttr('hidden');
+  // Selects and the time picker (the dialogs are PluginDialog prompts, see prompts.js)
+  $('#details [data-plugin-select]').each(function () {
+    var $w = $(this); $w.themestrapPluginSelect();
+    var $label = $w.closest('.field').find('.lbl').first(), trigger = $w.find('.ts-select-trigger')[0];
+    if ($label.length && trigger && trigger.id) trigger.setAttribute('aria-labelledby', $label.attr('id') + ' ' + trigger.id);
+  });
 
   // Auto growing title
 
@@ -161,7 +165,7 @@
 
     function pad(n) { return ('0' + n).slice(-2); }
     function sync(fromUser) {
-      var d = cal.getValue(), t = $('#f-time').val() || '00:00';
+      var d = cal.getValue(), t = $('#f-time').val() || '09:00';
       if (!d) return;
       var iso = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + t;
       $('#f-date').val(iso);
@@ -173,14 +177,16 @@
         : 'In the past or now, so a published post shows straight away.');
       if (fromUser) markDirty();
     }
+    $('#f-time').themestrapPluginTimePicker({ minuteStep: 5, placeholder: 'Time', defaultTime: '09:00', block: true });
+    var tpicker = $('#f-time').data('__pluginTimePicker');
     sync(false);
 
     $('#f-cal')[0].addEventListener('ts.calendar.select', function () { sync(true); });
-    $('#f-time').on('input change', function () { sync(true); });
+    $('#f-time')[0].addEventListener('ts.timepicker.change', function () { sync(true); });
     $('#date-now').on('click', function () {
       var n = new Date();
       cal.setValue(n); cal.goToToday();
-      $('#f-time').val(pad(n.getHours()) + ':' + pad(n.getMinutes()));
+      tpicker.setValue(pad(n.getHours()) + ':' + pad(n.getMinutes()), true);
       sync(true);
     });
     function pop(open) {
@@ -267,18 +273,35 @@
   $(document).on('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 's') { e.preventDefault(); save(); } });
   window.addEventListener('beforeunload', function (e) { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
 
-  // Delete
+  // Delete, and leaving with unsaved changes, both ask through PluginDialog
 
-  $('#btn-delete').on('click', function () { dialog.open(); });
-  $('#confirm-yes').on('click', function () {
-    post(cfg.delete, { slug: state.original }).then(function (r) {
-      if (r.ok) { state.dirty = false; try { localStorage.removeItem(cfg.key); } catch (e) {} location.href = r.redirect; }
-      else toast((r.errors || ['Could not delete.']).join(' '), true);
+  $('#btn-delete').on('click', function () {
+    window.tsPrompt.confirm({
+      title: 'Delete this post?',
+      message: 'This removes it from your site for good. It cannot be undone.',
+      confirmLabel: 'Delete', cancelLabel: 'Keep it', danger: true
+    }).then(function (yes) {
+      if (!yes) return;
+      post(cfg.delete, { slug: state.original }).then(function (r) {
+        if (r.ok) { state.dirty = false; try { localStorage.removeItem(cfg.key); } catch (e) {} location.href = r.redirect; }
+        else toast((r.errors || ['Could not delete.']).join(' '), true);
+      });
     });
-    dialog.close();
   });
 
-  // Start in the last used mode and put the cursor where writing begins
+  // A link clicked while there are unsaved changes: ask first (the browser's own warning still covers closing the tab)
+  $(document).on('click', 'a[href]', function (e) {
+    var a = this, href = a.getAttribute('href') || '';
+    if (!state.dirty || e.isDefaultPrevented() || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    if (a.target === '_blank' || a.hasAttribute('download') || /^(#|javascript:|mailto:|tel:)/i.test(href)) return;
+    e.preventDefault();
+    window.tsPrompt.confirm({
+      title: 'Leave without saving?',
+      message: 'You have changes that have not been saved. They will be lost if you leave.',
+      confirmLabel: 'Leave without saving', cancelLabel: 'Keep editing', danger: true
+    }).then(function (yes) { if (yes) { state.dirty = false; location.href = a.href; } });
+  });
+
   // Rich text is the friendly default. Posts that contain raw HTML stay in Markdown so nothing is lost.
   var risky = cfg.allowHtml && /<[a-z!][^>]*>/i.test(cfg.body);
   var pref = null;

@@ -10,6 +10,7 @@
     var next = dark ? 'light' : 'dark';
     d.setAttribute('data-theme', next);
     d.classList.toggle('dark', next === 'dark');
+    d.setAttribute('data-bs-theme', next);
     try { localStorage.setItem(k, next); } catch (e) {}
   });
   var t = d.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');

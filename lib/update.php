@@ -57,6 +57,20 @@ function ts_update_key(): string
     return trim((string) ts_cfg('update_public_key', '')) ?: TS_UPDATE_KEY;
 }
 
+// A short fingerprint of a public key, shown so a key mismatch is easy to spot (the tool prints the same one)
+function ts_update_key_id(string $pubB64): string
+{
+    $raw = base64_decode(trim($pubB64), true);
+    return $raw !== false && strlen($raw) === 32 ? substr(hash('sha256', $raw), 0, 16) : '';
+}
+
+function ts_update_key_message(string $trusted, string $release): string
+{
+    $who = $release !== '' ? "This release was signed with key {$release}, but this blog trusts key {$trusted}." : "It was not signed with the key this blog trusts ({$trusted}).";
+    return 'The update’s signature is not valid, so it was not installed. Nothing was changed. ' . $who
+        . ' If you changed your signing key, publish a release signed with the OLD key that carries the new one (see Updates → Changing the signing key), or update this blog by hand once.';
+}
+
 function ts_update_url_ok(string $u): bool
 {
     $p = parse_url($u);
@@ -189,6 +203,8 @@ function ts_update_status(): array
         'configured' => ts_update_url() !== '', 'url' => ts_update_url(), 'current' => TS_VERSION,
         'latest' => $m['version'] ?? '', 'available' => $m && version_compare($m['version'], TS_VERSION, '>'),
         'notes' => (string) ($m['notes'] ?? ''), 'released' => (string) ($m['released'] ?? ''),
+        'trusted_key' => ts_update_key_id(ts_update_key()), 'release_key' => (string) ($m['key_id'] ?? ''),
+        'key_mismatch' => $m && !empty($m['key_id']) && ts_update_key_id(ts_update_key()) !== '' && $m['key_id'] !== ts_update_key_id(ts_update_key()),
         'checked_at' => (int) ($u['checked_at'] ?? 0), 'error' => (string) ($u['error'] ?? ''),
         // A failed check is retried after ten minutes, a good one after twelve hours
         'stale' => !isset($u['checked_at']) || time() - (int) $u['checked_at'] > (($u['error'] ?? '') !== '' ? 600 : TS_UPDATE_TTL),
@@ -205,7 +221,7 @@ function ts_update_check(bool $force = false): array
         $m = json_decode($raw, true);
         if (!is_array($m)) throw new RuntimeException('That address did not return update information. It should be the address of latest.json, or of the GitHub repository that publishes it.');
         if ($err = ts_update_manifest_check($m)) throw new RuntimeException($err);
-        $clean = array_intersect_key($m, array_flip(['version', 'zip', 'sha256', 'signature', 'size', 'min_php', 'notes', 'released']));
+        $clean = array_intersect_key($m, array_flip(['version', 'zip', 'sha256', 'signature', 'size', 'min_php', 'notes', 'released', 'key_id']));
         $clean['notes'] = mb_substr((string) ($clean['notes'] ?? ''), 0, 4000);
         ts_state_set(['update' => ['checked_at' => time(), 'manifest' => $clean, 'error' => '', 'url' => ts_update_url()]]);
     } catch (Throwable $e) {
@@ -303,6 +319,7 @@ function ts_update_install(): array
     $m = ts_data_read('state')['update']['manifest'];
     if (!empty($m['min_php']) && version_compare(PHP_VERSION, $m['min_php'], '<')) return ['ok' => false, 'message' => "Version {$m['version']} needs PHP {$m['min_php']} or newer, and this server runs PHP " . PHP_VERSION . '.'];
 
+    if ($st['key_mismatch']) return ['ok' => false, 'message' => ts_update_key_message($st['trusted_key'], $st['release_key'])];
     if (!ts_update_lock()) return ['ok' => false, 'message' => 'Another update is already running. Please wait a minute and try again.'];
     $tmpZip = ts_cfg('paths')['data'] . '/update-' . bin2hex(random_bytes(4)) . '.zip';
     $backup = null;
@@ -311,11 +328,18 @@ function ts_update_install(): array
         $max = min(TS_UPDATE_MAX_ZIP, max(1024, (int) ($m['size'] ?? TS_UPDATE_MAX_ZIP)) + 4096);
         ts_update_fetch($m['zip'], $max, $tmpZip);
         if (!is_file($tmpZip) || hash_file('sha256', $tmpZip) !== $m['sha256']) throw new RuntimeException('The downloaded update does not match its checksum, so it was not installed. Nothing was changed.');
-        $key = base64_decode(ts_update_key(), true);
+        $key = base64_decode(trim(ts_update_key()), true);
         $sig = base64_decode($m['signature'], true);
-        if (!$key || strlen($key) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES || !$sig || !sodium_crypto_sign_verify_detached($sig, 'tsblog|' . $m['version'] . '|' . $m['sha256'], $key)) {
-            throw new RuntimeException('The update’s signature is not valid, so it was not installed. Nothing was changed.');
+        $trusted = ts_update_key_id(ts_update_key());
+        if (!$key || strlen($key) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) {
+            throw new RuntimeException('This blog’s update signing key is not valid, so no update can be checked. It should be the 44 character public key (the contents of release.key.pub), not the secret key. Nothing was changed.');
         }
+        if (!$sig || strlen($sig) !== SODIUM_CRYPTO_SIGN_BYTES) {
+            throw new RuntimeException('The update’s signature is damaged, so it was not installed. Nothing was changed. The files on the update server may be out of step: re-upload latest.json and the zip together.');
+        }
+        $valid = false;
+        try { $valid = sodium_crypto_sign_verify_detached($sig, 'tsblog|' . $m['version'] . '|' . $m['sha256'], $key); } catch (Throwable $e) { $valid = false; }
+        if (!$valid) throw new RuntimeException(ts_update_key_message($trusted, (string) ($m['key_id'] ?? '')));
 
         // 2 read and validate every entry before touching anything
         $zip = new ZipArchive();

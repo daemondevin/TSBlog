@@ -7,8 +7,14 @@
 //       The public key is printed and saved next to it as release.key.pub.
 //       The tool refuses to use a key stored inside a folder that gets published.
 //
+//   php tools/build-release.php --show-key [--key PATH]
+//       Prints the public key and its fingerprint (the same fingerprint the blog's Updates card shows).
+//
 //   php tools/build-release.php --version 1.0.1 --url https://example.com/blog-updates --key release.key
 //   php tools/build-release.php --version 1.0.1 --github OWNER/REPO --key release.key     (for a GitHub release)
+//
+//   Changing keys: sign with the OLD key and bake in the NEW one, so blogs that trust the old key accept it:
+//   php tools/build-release.php --version 1.1.0 --url … --key OLD.key --rotate-to NEW.key
 //       [--notes "What changed"] [--notes-file CHANGES.txt] [--min-php 8.1.0] [--out dist]
 //       Writes to dist/:
 //         tsblog-1.0.1.zip          the update package (what the updater downloads)
@@ -20,7 +26,7 @@
 if (PHP_SAPI !== 'cli') { http_response_code(403); exit; }
 
 $root = dirname(__DIR__);
-$opt = getopt('', ['keygen', 'github:', 'version:', 'url:', 'key:', 'notes:', 'notes-file:', 'min-php:', 'out:']);
+$opt = getopt('', ['keygen', 'show-key', 'rotate-to:', 'allow-new-key', 'github:', 'version:', 'url:', 'key:', 'notes:', 'notes-file:', 'min-php:', 'out:']);
 $fail = function (string $m) { fwrite(STDERR, "Error: $m\n"); exit(1); };
 
 $home = getenv('USERPROFILE') ?: (getenv('HOME') ?: '');
@@ -63,6 +69,25 @@ if (isset($opt['keygen'])) {
     $pub = base64_encode(sodium_crypto_sign_publickey($pair));
     file_put_contents($path . '.pub', $pub . "\n");
     echo "Secret key written to $path (keep it private and make a backup).\nPublic key: $pub\n";
+    echo "Fingerprint: " . substr(hash('sha256', sodium_crypto_sign_publickey($pair)), 0, 16) . "\n";
+    exit(0);
+}
+
+// A short fingerprint of a public key. The blog's Updates card shows the same one for the key it trusts.
+$keyId = fn(string $rawPublic) => substr(hash('sha256', $rawPublic), 0, 16);
+// Accepts a secret key file or a .pub file and returns the raw public key
+$loadPublic = function (string $path) use ($fail) {
+    if (!is_file($path)) $fail("Key file $path not found.");
+    $raw = base64_decode(trim((string) file_get_contents($path)), true);
+    if ($raw !== false && strlen($raw) === SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) return sodium_crypto_sign_publickey_from_secretkey($raw);
+    if ($raw !== false && strlen($raw) === SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) return $raw;
+    $fail("$path is not a valid key file.");
+};
+
+if (isset($opt['show-key'])) {
+    $kf = $opt['key'] ?? $defaultKey;
+    $pub = $loadPublic($kf);
+    echo "Key file:    $kf\nPublic key:  " . base64_encode($pub) . "\nFingerprint: " . $keyId($pub) . "\n";
     exit(0);
 }
 
@@ -81,7 +106,24 @@ if (!is_file($keyFile)) $fail("Key file $keyFile not found. Make one with --keyg
 $keyGuard($keyFile);
 $secret = base64_decode(trim((string) file_get_contents($keyFile)), true);
 if ($secret === false || strlen($secret) !== SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) $fail('That is not a valid secret key file.');
-$public = base64_encode(sodium_crypto_sign_publickey_from_secretkey($secret));
+$signerPublic = sodium_crypto_sign_publickey_from_secretkey($secret);
+$signerId = $keyId($signerPublic);
+// The key blogs will trust after installing this release: normally the signing key, or the new one when rotating
+$bakePublic = isset($opt['rotate-to']) ? $loadPublic($opt['rotate-to']) : $signerPublic;
+$public = base64_encode($bakePublic);
+
+// Remember which key each update address is signed with, so a different key cannot be used by accident.
+// (A blog only accepts releases signed with the key it already trusts, so a changed key breaks every blog.)
+$histFile = $home !== '' ? dirname($defaultKey) . DIRECTORY_SEPARATOR . 'history.json' : null;
+$history = $histFile && is_file($histFile) ? (json_decode((string) file_get_contents($histFile), true) ?: []) : [];
+$trusted = $history[$url]['trusts'] ?? null;
+if ($trusted !== null && $trusted !== $signerId && !isset($opt['allow-new-key'])) {
+    $fail("This update address ($url) was last published with key $trusted, but you are signing with key $signerId.\n"
+        . "Blogs trust key $trusted, so they would reject this release (\"The update's signature is not valid\").\n"
+        . "  - Use the original key:       --key PATH-TO-THE-KEY-WITH-FINGERPRINT-$trusted\n"
+        . "  - Change keys properly:       --key OLD.key --rotate-to NEW.key   (signed with the old key, carries the new one)\n"
+        . "  - Start over (blogs must then be updated by hand once):  --allow-new-key");
+}
 $notes = isset($opt['notes-file']) ? trim((string) file_get_contents($opt['notes-file'])) : (string) ($opt['notes'] ?? '');
 if (!is_dir($out) && !mkdir($out, 0775, true)) $fail("Could not create $out");
 
@@ -173,11 +215,17 @@ $sha = hash_file('sha256', $updateZip);
 $sig = base64_encode(sodium_crypto_sign_detached("tsblog|$version|$sha", $secret));
 $manifest = [
     'name' => 'Themestrap Blog', 'version' => $version, 'released' => date('Y-m-d'), 'min_php' => $opt['min-php'] ?? '8.1.0',
-    'zip' => "$url/tsblog-$version.zip", 'sha256' => $sha, 'size' => filesize($updateZip), 'signature' => $sig, 'notes' => $notes,
+    'zip' => "$url/tsblog-$version.zip", 'sha256' => $sha, 'size' => filesize($updateZip), 'signature' => $sig, 'key_id' => $signerId, 'notes' => $notes,
 ];
 file_put_contents("$out/latest.json", json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
 
+if ($histFile) {
+    $history[$url] = ['trusts' => $keyId($bakePublic), 'version' => $version];
+    if (!is_dir(dirname($histFile))) @mkdir(dirname($histFile), 0700, true);
+    @file_put_contents($histFile, json_encode($history, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+}
 echo "Built version $version in $out/\n";
+echo "Signed with key $signerId" . (isset($opt['rotate-to']) ? "; blogs will trust key " . $keyId($bakePublic) . " from this release on" : "") . "\n";
 echo "  tsblog-$version.zip           update package (" . count($contents) . " files)\n";
 echo "  tsblog-$version-install.zip   fresh install with the update address and key built in\n";
 echo "  latest.json                    manifest, signed\n";

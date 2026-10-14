@@ -113,3 +113,23 @@ details summary{cursor:pointer;font-weight:600;margin:.3rem 0 .9rem}details>labe
 /* updates */
 .btn-row{display:flex;gap:.6rem;flex-wrap:wrap}
 .notes{white-space:pre-wrap;font:.85rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:color-mix(in srgb,var(--fg) 6%,transparent);border-radius:8px;padding:.7rem .9rem;margin:0;max-height:14rem;overflow:auto}
+
+/* Themestrap plugins that replace the browser's own controls follow the admin palette in light and dark */
+:root{--ctl-h:2.45rem;
+  --ts-ni-h:var(--ctl-h);--ts-ni-bg:transparent;--ts-ni-border:var(--line);--ts-ni-border-focus:var(--accent);--ts-ni-text:var(--fg);--ts-ni-muted:var(--muted);
+  --ts-ni-btn-bg:color-mix(in srgb,var(--fg) 5%,transparent);--ts-ni-btn-hover:color-mix(in srgb,var(--fg) 12%,transparent);--ts-ni-focus-ring:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);--ts-ni-radius:7px;
+  --ts-tp-h:var(--ctl-h);--ts-tp-bg:transparent;--ts-tp-border:var(--line);--ts-tp-border-focus:var(--accent);--ts-tp-text:var(--fg);--ts-tp-muted:var(--muted);--ts-tp-pop-bg:var(--panel);
+  --ts-tp-hover:color-mix(in srgb,var(--fg) 8%,transparent);--ts-tp-accent:var(--accent);--ts-tp-accent-text:var(--accent-fg);--ts-tp-focus-ring:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);--ts-tp-radius:7px}
+/* PluginSelect sets its colors on .ts-select (and again for dark), so this selector is deliberately stronger */
+.ts-select.ts-select.ts-select{--ts-select-h:var(--ctl-h);--ts-select-trigger-bg:transparent;--ts-select-trigger-border:var(--line);--ts-select-trigger-radius:7px;
+  --ts-select-trigger-color:var(--fg);--ts-select-trigger-muted:var(--muted);--ts-select-trigger-dim-bg:color-mix(in srgb,var(--fg) 6%,transparent);
+  --ts-select-focus-ring:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);--ts-select-focus-border:var(--accent);
+  --ts-select-content-bg:var(--panel);--ts-select-content-border:var(--line);--ts-select-content-radius:10px;--ts-select-content-shadow:0 12px 32px -6px rgba(0,0,0,.3);
+  --ts-select-item-color:var(--fg);--ts-select-item-hover-bg:color-mix(in srgb,var(--fg) 8%,transparent);--ts-select-separator-bg:var(--line);--ts-select-content-z:1100}
+.ts-select-trigger{font-size:15px}
+.ts-select-item--selected{color:var(--accent)}
+.card-block .field,.details .field{display:flex;flex-direction:column;gap:.3rem}
+.card-block .field .lbl{font-weight:600;font-size:.88rem}.card-block .field small{font-weight:400}
+details>.field{margin-bottom:.9rem}
+.date-row .ts-tp{flex:0 0 9.6rem}
+.ts-dlg-prompt [data-dialog-panel]{border:1px solid var(--line)}

@@ -65,7 +65,7 @@ Paste a picture, drop it onto the editor, or use the image button. Big photos ar
 | **Update** | Saves a published post |
 | **Unpublish** | Saves and returns the post to a draft |
 
-The label next to the buttons shows where you are: *Unsaved changes*, *Saving…*, *Draft saved* or *Published*. The browser also warns you if you try to leave with unsaved changes.
+The label next to the buttons shows where you are: *Unsaved changes*, *Saving…*, *Draft saved* or *Published*. If you click a link while there are unsaved changes, a dialog asks whether to leave or keep editing. Closing the tab or reloading shows your browser's own warning instead.
 
 A copy of what you type is kept in your browser every moment. If your connection drops or the tab closes, the editor offers to restore that copy the next time you open the post.
 
@@ -74,7 +74,7 @@ A copy of what you type is kept in your browser every moment. If your connection
 | Setting | Notes |
 | - | - |
 | Address | The URL slug. Follows the title until you edit it. Letters, numbers and dashes only |
-| Publish date | Pick the day from the calendar (the date button) and the time beside it. A future date schedules the post, and it appears on its own when the time arrives. The note under the field tells you which it is. **Now** resets to the present |
+| Publish date | Pick the day from the calendar (the date button). Set the time beside it: click the clock to choose an hour, minutes and AM or PM, or just type it (`8:30pm`, `830` and `20:30` all work). The arrow keys change the minutes. A future date schedules the post, and it appears on its own when the time arrives. The note under the field tells you which it is. **Now** resets to the present |
 | Type | **Post** appears in lists and the feed. **Page** appears in the menu and stays out of the feed |
 | Tags | Type a tag and press Enter. Up to 20 per post |
 | Summary for search engines | The meta description and social card text. Aim for 160 characters. If empty, the opening paragraph is used |

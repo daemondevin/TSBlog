@@ -145,7 +145,24 @@ Press **Check for updates**, which always looks again. Automatic checks retry a 
 
 ### “The update’s signature is not valid”
 
-The package was not signed with the key your copy trusts. Either the files on the update server do not match (the publisher should rebuild and re-upload all three files together), or someone is tampering with the download. Nothing was changed.
+The release was not signed with the key this blog trusts. The message names both keys by fingerprint ("signed with key X, but this blog trusts key Y"), and the Updates card shows the one your blog trusts. The usual cause is that a **second signing key** was made and used for a release.
+
+To find out, on the publisher's computer run `php tools/build-release.php --show-key` and compare the fingerprint with the one in the blog's Updates card.
+
+**If you still have the original key** (look for other copies of `release.key` and in `~/.tsblog/`): rebuild the release with it, `--key PATH-TO-ORIGINAL`, and upload the three files again.
+
+**If the original key is gone or you want to move to the new one:**
+
+- To fix a blog right now, update it by hand once (see [Manual updating](updates.md#manual-updating)). The release you upload carries the new key, so the blog trusts it from then on. Or, on that blog, set the new public key in `config.php`: `'update_public_key' => 'CONTENTS-OF-release.key.pub'`.
+- To avoid this next time, use `--rotate-to` when changing keys (see [Changing the signing key](updates.md#changing-the-signing-key)).
+
+Other things that produce the same message:
+
+- `latest.json` was edited by hand. The signature covers the version, so changing it breaks the signature.
+- The key in `config.php` (`update_public_key`) is the secret key. It must be the public key from `release.key.pub` (44 characters). A different message appears for that case.
+- The zip and `latest.json` come from different builds. Re-upload all three files from one build together.
+
+Nothing was changed on your site in any of these cases.
 
 ### “The downloaded update does not match its checksum”
 

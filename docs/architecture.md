@@ -190,12 +190,23 @@ The editor page is a plain HTML form enhanced by `assets/admin/editor.js`, which
 | Plugin | Role |
 | - | - |
 | `PluginAuth` | The sign-in and first-run setup forms (validation, show/hide password, strength meter, inline errors, lockout countdown) |
-| `PluginCalendar` | The publish date picker in the post settings. The time is a separate field |
+| `PluginCalendar` | The publish date picker in the post settings |
+| `PluginTimePicker` | The publish time, beside the calendar. Keeps `HH:mm` in the original input |
+| `PluginSelect` | Every dropdown: the post type in the editor, and all six in Settings |
+| `PluginNumberInput` | The number fields in Settings (posts per page, posts in the feed) |
 | `PluginRichEditor` | Simple mode, with Markdown typing shortcuts and Markdown output |
 | `PluginMarkdownEditor` | Markdown mode, with toolbar and preview |
 | `PluginTagsInput` | The tag field |
-| `PluginDialog` | The delete confirmation |
+| `PluginDialog` | Every question or notice, through `PluginDialog.confirm()` and `alert()`. The admin never uses the browser's own `confirm()` or `alert()` boxes |
 | `PluginToolbar`, `PluginMarkdown` | Used by the editors |
+
+### Prompts and form controls
+
+`assets/admin/prompts.js` wraps `PluginDialog.confirm()` and `alert()` as `tsPrompt.confirm()` and `tsPrompt.alert()`, with the admin's button styles, and falls back to the browser's own boxes only if the plugin is missing. The delete confirmation, the "leave without saving" question, and the update prompts all use it.
+
+Leaving the editor with unsaved changes is covered twice. Clicking a link inside the page asks through a dialog. Closing or reloading the tab still shows the browser's own warning (`beforeunload`), because no script is allowed to replace that one.
+
+`assets/admin/settings-ui.js` turns the Settings dropdowns into `PluginSelect` and the number fields into `PluginNumberInput`. The real `<select>` and `<input>` elements stay in the form and keep the values, so saving works exactly as before. `assets/admin/admin.css` maps each plugin's `--ts-*` colour tokens to the admin palette in light and dark.
 
 ### Sign-in and setup
 
