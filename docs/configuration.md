@@ -98,7 +98,7 @@ Leave empty. The blog works out its own address. Fill it in only when your site 
 
 | Setting | What it does |
 | - | - |
-| Update address | Where to look for new versions (a `latest.json` address). Leave empty to use the one built into your copy |
+| Update address | Where to look for new versions: the `latest.json` address, a folder that contains it, or a GitHub repository address (`https://github.com/OWNER/REPO`). Leave empty to use the one built into your copy |
 | Look for updates automatically | Checks about once a day when you open the admin. Off means only when you press the button |
 
 See [Updates](updates.md).
@@ -147,7 +147,7 @@ Every key:
 | `store` | `'files'` | `'files'` or `'sqlite'` |
 | `post_files` | `'auto'` | `'auto'`, `'plain'` or `'protected'` |
 | `allow_html` | `false` | |
-| `update_url` | built in | The update manifest address, `https://` |
+| `update_url` | built in | The update address, `https://`. A `latest.json` address, a folder, or a GitHub repository |
 | `update_check` | `true` | Automatic checks when the admin is opened |
 | `update_public_key` | built in | The key update packages must be signed with. `config.php` only |
 | `update_allow_insecure` | `false` | Allow `http://localhost` update addresses, for testing. `config.php` only |

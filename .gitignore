@@ -1,3 +1,10 @@
+# Signing keys and release output must never be committed
+release.key*
+*.key
+*.pem
+.env
+dist/
+
 data/*
 !data/.htaccess
 !data/.gitkeep

@@ -243,7 +243,7 @@ function ts_settings_clean(array $in, array $cfg): array
     }
     if (!in_array('update_url', $locked, true) && isset($in['update_url'])) {
         $u = trim((string) $in['update_url']);
-        if ($u === '' || preg_match('#^https://[^\s/]+(/[^\s]*)?$#', $u)) $out['update_url'] = $u; else $err[] = 'The update address must start with https://.';
+        if ($u === '' || preg_match('#^https://[^\s/]+(/[^\s]*)?$#', $u)) $out['update_url'] = $u; else $err[] = 'The update address must start with https://. For GitHub you can paste the repository address, such as https://github.com/OWNER/REPO.';
     }
     foreach (['allow_html', 'reading_progress', 'scroll_shadow', 'update_check'] as $flag) {
         if (!in_array($flag, $locked, true) && isset($in['_form'])) $out[$flag] = !empty($in[$flag]);

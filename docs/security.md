@@ -66,7 +66,7 @@ Test it yourself: open `yoursite/data/admin.php` and `yoursite/config.php`. Each
 
 ## Updates
 
-The built-in updater does not trust the network. Every release is signed with an Ed25519 key, and the blog verifies the signature against the key already installed before it unpacks anything. It also checks the download's SHA-256, refuses any file outside the program folders, refuses links and `..` paths, checks that every PHP file parses, and backs up what it replaces. A hacked download server alone cannot push code to your blog. The signature check works with or without PHP's `sodium` extension, because a pure-PHP copy of the same algorithm is bundled (`lib/vendor/sodium_compat`, ISC license). See [Updates](updates.md#how-it-keeps-you-safe).
+The built-in updater does not trust the network. Every release is signed with an Ed25519 key, and the blog verifies the signature against the key already installed before it unpacks anything. It also checks the download's SHA-256, refuses any file outside the program folders, refuses links and `..` paths, checks that every PHP file parses, and backs up what it replaces. A hacked download server alone cannot push code to your blog. Publishers' signing keys are kept outside the blog folder, and the release tool refuses to package anything that looks like a key. The signature check works with or without PHP's `sodium` extension, because a pure-PHP copy of the same algorithm is bundled (`lib/vendor/sodium_compat`, ISC license). See [Updates](updates.md#how-it-keeps-you-safe).
 
 ## What you should do
 

@@ -29,9 +29,27 @@ function ts_update_sodium(): bool
     return $ok = function_exists('sodium_crypto_sign_verify_detached') && defined('SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES');
 }
 
+// People paste all sorts of things here, so the address is made tolerant:
+//   https://github.com/OWNER/REPO                       the repository page (its newest release is used)
+//   https://example.com/updates                         a folder (latest.json inside it is used)
+//   https://example.com/updates/latest.json             the manifest itself
+function ts_update_normalize_url(string $u): string
+{
+    $u = trim($u);
+    if ($u === '') return '';
+    if (preg_match('#^https://(?:www\.)?github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\.git)?(?:/releases(?:/latest)?)?/?$#', $u, $m)) {
+        return "https://github.com/{$m[1]}/{$m[2]}/releases/latest/download/latest.json";
+    }
+    $p = parse_url($u);
+    if ($p && !preg_match('/\.json$/i', (string) ($p['path'] ?? ''))) {
+        $u = rtrim((string) preg_replace('/[?#].*$/', '', $u), '/') . '/latest.json';
+    }
+    return $u;
+}
+
 function ts_update_url(): string
 {
-    return trim((string) ts_cfg('update_url', '')) ?: TS_UPDATE_URL;
+    return ts_update_normalize_url(trim((string) ts_cfg('update_url', '')) ?: TS_UPDATE_URL);
 }
 
 function ts_update_key(): string
@@ -53,6 +71,8 @@ function ts_update_allowed(string $rel): bool
 {
     if ($rel === '' || $rel[0] === '/' || strpos($rel, "\0") !== false || strpos($rel, '\\') !== false) return false;
     if (preg_match('#(^|/)\.\.?(/|$)#', $rel)) return false;
+    // Never accept anything that looks like a key or a secret, wherever it hides
+    if (preg_match('#(\.(key|pem|pfx|p12)$)|((^|/)\.env)|((^|/)dist/)|(^|/)release\.key#i', $rel)) return false;
     if (in_array($rel, ['index.php', 'config.sample.php', 'README.md', 'release.json'], true)) return true;
     foreach (['lib/', 'assets/', 'tools/', 'docs/', 'theme/default/'] as $p) {
         if (strpos($rel, $p) === 0 && substr($rel, -1) !== '/') return true;
@@ -86,6 +106,15 @@ function ts_update_problems(): array
     return $p;
 }
 
+function ts_update_http_error(int $code, string $curlError): string
+{
+    if ($code === 0 && $curlError !== '') return 'Could not reach the update server: ' . $curlError . '. If this mentions a certificate, your host may need its CA certificates updated.';
+    if ($code === 404) return 'Nothing was found at the update address (404). Check the address, and that the release is published (not a draft) and includes latest.json.';
+    if ($code === 403 || $code === 429) return "The update server refused the request ($code). It may be rate limiting; try again in a few minutes.";
+    if ($code >= 500) return "The update server had a problem ($code). Try again later.";
+    return $curlError !== '' ? 'Could not reach the update server: ' . $curlError : "The update server answered with an error ($code).";
+}
+
 function ts_update_fetch(string $url, int $max, ?string $toFile = null): string
 {
     if (!ts_update_url_ok($url)) throw new RuntimeException('Updates are only downloaded over a secure (https) connection.');
@@ -114,7 +143,7 @@ function ts_update_fetch(string $url, int $max, ?string $toFile = null): string
         curl_close($ch);
         if ($fh) fclose($fh);
         if ($got > $max) throw new RuntimeException('The update file is larger than expected, so it was not used.');
-        if ($code !== 200) throw new RuntimeException($err !== '' ? 'Could not reach the update server: ' . $err : "The update server answered with an error ($code).");
+        if ($code !== 200) throw new RuntimeException(ts_update_http_error($code, $err));
         return $buf;
     }
 
@@ -124,7 +153,7 @@ function ts_update_fetch(string $url, int $max, ?string $toFile = null): string
     if (!$in) throw new RuntimeException('Could not reach the update server.');
     $status = 0;
     foreach ($http_response_header ?? [] as $h) if (preg_match('#^HTTP/\S+ (\d+)#', $h, $m)) $status = (int) $m[1];
-    if ($status !== 200) { fclose($in); throw new RuntimeException("The update server answered with an error ($status)."); }
+    if ($status !== 200) { fclose($in); throw new RuntimeException(ts_update_http_error($status, '')); }
     $out = $toFile ? fopen($toFile, 'wb') : null; $buf = ''; $got = 0;
     while (!feof($in)) {
         $d = fread($in, 65536);
@@ -153,13 +182,16 @@ function ts_update_manifest_check($m)
 function ts_update_status(): array
 {
     $u = ts_data_read('state')['update'] ?? [];
+    // What was learned about a different address does not apply to this one
+    if (($u['url'] ?? '') !== ts_update_url()) $u = [];
     $m = $u['manifest'] ?? null;
     return [
-        'configured' => ts_update_url() !== '', 'current' => TS_VERSION,
+        'configured' => ts_update_url() !== '', 'url' => ts_update_url(), 'current' => TS_VERSION,
         'latest' => $m['version'] ?? '', 'available' => $m && version_compare($m['version'], TS_VERSION, '>'),
         'notes' => (string) ($m['notes'] ?? ''), 'released' => (string) ($m['released'] ?? ''),
         'checked_at' => (int) ($u['checked_at'] ?? 0), 'error' => (string) ($u['error'] ?? ''),
-        'stale' => !isset($u['checked_at']) || time() - (int) $u['checked_at'] > TS_UPDATE_TTL,
+        // A failed check is retried after ten minutes, a good one after twelve hours
+        'stale' => !isset($u['checked_at']) || time() - (int) $u['checked_at'] > (($u['error'] ?? '') !== '' ? 600 : TS_UPDATE_TTL),
     ];
 }
 
@@ -171,13 +203,15 @@ function ts_update_check(bool $force = false): array
     try {
         $raw = ts_update_fetch(ts_update_url(), 262144);
         $m = json_decode($raw, true);
+        if (!is_array($m)) throw new RuntimeException('That address did not return update information. It should be the address of latest.json, or of the GitHub repository that publishes it.');
         if ($err = ts_update_manifest_check($m)) throw new RuntimeException($err);
         $clean = array_intersect_key($m, array_flip(['version', 'zip', 'sha256', 'signature', 'size', 'min_php', 'notes', 'released']));
         $clean['notes'] = mb_substr((string) ($clean['notes'] ?? ''), 0, 4000);
-        ts_state_set(['update' => ['checked_at' => time(), 'manifest' => $clean, 'error' => '']]);
+        ts_state_set(['update' => ['checked_at' => time(), 'manifest' => $clean, 'error' => '', 'url' => ts_update_url()]]);
     } catch (Throwable $e) {
         $prev = ts_data_read('state')['update'] ?? [];
-        ts_state_set(['update' => ['checked_at' => time(), 'manifest' => $prev['manifest'] ?? null, 'error' => $e->getMessage()]]);
+        $same = ($prev['url'] ?? '') === ts_update_url();
+        ts_state_set(['update' => ['checked_at' => time(), 'manifest' => $same ? ($prev['manifest'] ?? null) : null, 'error' => $e->getMessage(), 'url' => ts_update_url()]]);
     }
     return ts_update_status();
 }
@@ -354,7 +388,7 @@ function ts_update_install(): array
         }
 
         ts_update_finish();
-        ts_state_set(['update' => ['checked_at' => time(), 'manifest' => null, 'error' => '']]);
+        ts_state_set(['update' => ['checked_at' => time(), 'manifest' => null, 'error' => '', 'url' => ts_update_url()]]);
         ts_update_prune(2);
         ts_log("Updated from " . TS_VERSION . " to {$m['version']}");
         return ['ok' => true, 'message' => "Updated to version {$m['version']}.", 'from' => TS_VERSION, 'to' => $m['version'], 'changed' => count($add) + count($replace) + count($remove)];

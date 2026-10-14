@@ -123,6 +123,26 @@ Copy the `content`, `uploads` and `data` folders with your FTP program instead.
 
 It lists exactly what is missing. The usual causes are no update address (set one under Settings → Advanced), a program folder the blog cannot write to (set it to 755, or 775/777), or the `zip` PHP extension being missing (your host's PHP settings page lists extensions). A missing `sodium` extension is not a problem, the blog carries its own copy. You can always update by hand, see [Updates](updates.md#manual-updating).
 
+### “Nothing was found at the update address (404)”
+
+The Updates card shows the address it tried under “Looking at”. Open that address in a browser: it should show a small block of text starting with `{"name": "Themestrap Blog", …`. If you get a “not found” page instead:
+
+- On GitHub, the release must be **published** (not a draft) and have `latest.json`, the zip and the install zip **attached**. Pre-releases are skipped by GitHub's “latest”.
+- Check the repository name in the address, and that it is not private (a private repository cannot be reached without a login).
+- If you host the files yourself, check that `latest.json` is in the folder the address names.
+
+### “That address did not return update information”
+
+The address answered, but with a web page rather than `latest.json`. Use the address of `latest.json`, its folder, or a GitHub repository address. See [which address goes where](updates.md#which-address-goes-where).
+
+### “Could not reach the update server”
+
+The server could not connect. If the message mentions a certificate, your host's list of trusted certificate authorities is out of date. Ask the host to update it, or update by hand (see [Manual updating](updates.md#manual-updating)). If it mentions a timeout, try again later.
+
+### I fixed the address but it still shows an error
+
+Press **Check for updates**, which always looks again. Automatic checks retry a failed check after ten minutes, and a changed address is checked straight away.
+
 ### “The update’s signature is not valid”
 
 The package was not signed with the key your copy trusts. Either the files on the update server do not match (the publisher should rebuild and re-upload all three files together), or someone is tampering with the download. Nothing was changed.

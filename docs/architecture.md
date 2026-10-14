@@ -34,7 +34,7 @@ content/posts/         Markdown files (file store)
 uploads/               pictures
 data/                  settings, password, state, caches, log
 tools/migrate.php      copy posts between stores from a terminal
-tools/build-release.php  builds signed update and install packages (publishers)
+tools/build-release.php  builds signed update and install packages (publishers only, never shipped in packages)
 release.json           the file list and hashes of the installed release
 ```
 

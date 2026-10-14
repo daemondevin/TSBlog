@@ -21,7 +21,7 @@ If something looks wrong after an update, click **Go back to X** in the same pla
 
 | Updated | Never touched |
 | - | - |
-| `index.php`, `lib/`, `assets/`, `tools/`, `docs/`, `theme/default/`, `config.sample.php`, `README.md`, `release.json` | `content/`, `uploads/`, `data/`, `config.php`, `.htaccess`, `.user.ini`, any theme other than `default` |
+| `index.php`, `lib/`, `assets/`, `tools/migrate.php`, `docs/`, `theme/default/`, `config.sample.php`, `README.md`, `release.json` | `content/`, `uploads/`, `data/`, `config.php`, `.htaccess`, `.user.ini`, any theme other than `default` |
 
 If you edited files in `theme/default/`, an update replaces them. Copy the theme to a name of your own first and select it in Settings (see [Themes](themes.md)).
 
@@ -75,10 +75,29 @@ You publish updates by running one command. It builds the packages, signs them, 
 The release tool needs the `zip` extension. It uses the `sodium` extension if you have it and the bundled pure-PHP version if you do not.
 
 ```
-php tools/build-release.php --keygen --key release.key
+php tools/build-release.php --keygen
 ```
 
-This writes `release.key` (the **secret** key) and `release.key.pub`, and prints the public key. Keep the secret key private and make a backup. Whoever holds it can publish updates to every copy of your blog, and if you lose it you cannot publish.
+This writes the **secret** key to `~/.tsblog/release.key` (`%USERPROFILE%\.tsblog\release.key` on Windows), with a matching `release.key.pub`, and prints the public key. The key is deliberately kept **outside the blog folder**.
+
+Keep the secret key private and make a backup. Whoever holds it can publish updates to every copy of your blog, and if you lose it you cannot publish.
+
+#### Keep the key out of what you publish
+
+The tool protects you, in layers:
+
+| Safeguard | What it does |
+| - | - |
+| Default location outside the blog folder | The key is never near the files that get packaged |
+| Refuses a key inside a published folder | A key under `lib/`, `assets/`, `tools/`, `docs/` or `theme/default/` stops the build |
+| Refuses key-like files | Any `.key`, `.pem`, `.pub` or `.env` file in a published folder stops the build, naming the file |
+| Scans for the key itself | If the secret appears inside any file about to ship (pasted into a doc, say), the build stops |
+| Never packages `dist/` or the tool itself | Release output and `tools/build-release.php` are left out of every package. Blogs only receive `tools/migrate.php` |
+| `.gitignore` | Ignores `release.key*`, `*.key`, `*.pem`, `.env` and `dist/`, so a key cannot be committed by accident |
+
+The updater on each blog also refuses any package that contains key-like files or a `dist/` folder, so such a package would not install even if one were built by other means.
+
+If a key is ever published or committed, treat it as compromised: make a new key, release a new version signed with the new key right away (blogs trust the old key until they install it), and tell users to update promptly.
 
 ### Each release
 
@@ -88,7 +107,6 @@ This writes `release.key` (the **secret** key) and `release.key.pub`, and prints
    ```
    php tools/build-release.php --version 1.0.1 \
         --url https://example.com/blog-updates \
-        --key release.key \
         --notes "Faster pages. Fixes the date picker."
    ```
 
@@ -100,17 +118,36 @@ This writes `release.key` (the **secret** key) and `release.key.pub`, and prints
    | `tsblog-1.0.1.zip` | The update package that blogs download |
    | `tsblog-1.0.1-install.zip` | A fresh install for new sites, with the update address and your public key already built in |
 
-`--notes` appears in the Updates card before anyone installs. `--notes-file` reads it from a file. `--min-php` sets the oldest PHP the release supports (default 8.1.0).
+`--key PATH` uses a key somewhere other than the default. `--github OWNER/REPO` is a shortcut for the GitHub folder address, and the tool prints the address to use in Settings when it finishes. `--notes` appears in the Updates card before anyone installs. `--notes-file` reads it from a file. `--min-php` sets the oldest PHP the release supports (default 8.1.0).
 
 ### Where to host the files
 
-Anywhere that serves static files over HTTPS: your own site, object storage, or a GitHub release. For GitHub, upload the three files to a release and use this address, which always points at the latest release:
+Anywhere that serves static files over HTTPS: your own site, object storage, or a GitHub release. The package must be on the same host as `latest.json`.
+
+#### On GitHub
 
 ```
---url https://github.com/OWNER/REPO/releases/latest/download
+php tools/build-release.php --version 1.0.1 --github OWNER/REPO --notes "What changed"
 ```
 
-The package must be on the same host as `latest.json`, which this satisfies.
+Then, on GitHub: create a release, **attach all three files** from `dist/`, and **publish** it (a draft does not count). That is all. GitHub's `latest` release address always points at the newest published release, so blogs find new versions without any change on their side.
+
+Blogs built from your `-install.zip` already know the address. For any other copy, put the repository address in **Settings → Advanced → Update address**:
+
+```
+https://github.com/OWNER/REPO
+```
+
+#### Which address goes where
+
+There are two addresses and they are easy to mix up:
+
+| Where | What it is | Example |
+| - | - | - |
+| `--url` for the release tool | The **folder** you upload the three files to | `https://example.com/blog-updates` |
+| Settings → Update address | Where blogs look for `latest.json` | `https://example.com/blog-updates/latest.json` |
+
+The Settings field is forgiving. It accepts the `latest.json` address, the folder (the blog adds `latest.json`), or a GitHub repository address such as `https://github.com/OWNER/REPO` (the blog uses its latest release). The Updates card shows the exact address it is using, under "Looking at".
 
 ### The first release matters
 

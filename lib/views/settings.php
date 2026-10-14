@@ -93,7 +93,8 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
 
       <label>Site address <span class="muted">(leave empty to detect automatically)</span><input type="text" name="url" value="<?= e($v('url')) ?>" placeholder="https://example.com"<?= $attr('url') ?>><?= $note('url') ?></label>
 
-      <label>Update address <span class="muted">(leave empty to use the built in one)</span><input type="text" name="update_url" value="<?= e($v('update_url')) ?>" placeholder="https://example.com/updates/latest.json"<?= $attr('update_url') ?>><?= $note('update_url') ?></label>
+      <label>Update address <span class="muted">(leave empty to use the built in one)</span><input type="text" name="update_url" value="<?= e($v('update_url')) ?>" placeholder="https://github.com/OWNER/REPO"<?= $attr('update_url') ?>>
+        <small class="muted">A GitHub repository address (https://github.com/OWNER/REPO), a folder, or the address of latest.json all work.</small><?= $note('update_url') ?></label>
 
       <label class="check"><input type="checkbox" name="update_check" value="1"<?= $v('update_check') ? ' checked' : '' ?><?= $attr('update_check') ?>> Look for updates automatically when I open the admin
         <small class="muted">Contacts the update address about once a day. It sends nothing about your site except the blog's version number.</small><?= $note('update_check') ?></label>
@@ -126,7 +127,7 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
   <?php $up = ts_update_status(); $problems = ts_update_problems(); $backups = ts_update_backups(); ?>
   <section class="card-block" id="updates" data-endpoint="<?= e(ts_url('admin/update')) ?>" data-csrf="<?= e($csrf) ?>">
     <h2>Updates <span class="pill <?= $up['available'] ? 'sched' : 'live' ?>" id="update-pill"><?= $up['available'] ? 'Version ' . e($up['latest']) . ' available' : 'Up to date' ?></span></h2>
-    <p>You have <strong>Themestrap Blog <?= e(TS_VERSION) ?></strong>.</p>
+    <p>You have <strong>Themestrap Blog <?= e(TS_VERSION) ?></strong>.<?php if ($up['configured']): ?> <span class="muted">Looking at <code id="update-url"><?= e($up['url']) ?></code></span><?php endif; ?></p>
     <?php if (!$up['configured']): ?>
       <p class="muted">This copy has no update address. Add one under Advanced options above (or build releases with <code>tools/build-release.php</code>), then updating works from here.</p>
     <?php else: ?>
