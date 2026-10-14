@@ -51,6 +51,13 @@ function ts_abs(string $route = '', array $q = []): string
 }
 
 function ts_file(string $path): string { return ts_cfg('base') . '/' . ltrim($path, '/'); }
+// A file under the blog folder, with its modification time as ?v=, so a file that changed (an update, a re-upload)
+// is never served from the browser's cache next to a page that expects the new version
+function ts_file_v(string $path): string
+{
+    $abs = TS_ROOT . '/' . ltrim($path, '/');
+    return ts_file($path) . (is_file($abs) ? '?v=' . (int) filemtime($abs) : '');
+}
 function ts_file_abs(string $path): string { return ts_cfg('url') . '/' . ltrim($path, '/'); }
 function ts_origin(): string { return preg_replace('#^(https?://[^/]+).*$#', '$1', ts_cfg('url')); }
 

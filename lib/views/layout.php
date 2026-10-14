@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title><?= e($title) ?> · <?= e(ts_cfg('title')) ?></title>
-<script src="<?= e(ts_file('assets/admin/admin-theme.js')) ?>"></script>
-<link rel="stylesheet" href="<?= e(ts_file('assets/admin/fa/fa.css')) ?>">
-<link rel="stylesheet" href="<?= e(ts_file('assets/admin/admin.css')) ?>?v=<?= (int) @filemtime(ts_cfg('paths')['root'] . '/assets/admin/admin.css') ?>">
+<script src="<?= e(ts_file_v('assets/admin/admin-theme.js')) ?>"></script>
+<link rel="stylesheet" href="<?= e(ts_file_v('assets/admin/fa/fa.css')) ?>">
+<link rel="stylesheet" href="<?= e(ts_file_v('assets/admin/admin.css')) ?>">
 </head>
 <body class="<?= $bare ? 'bare' : 'chrome' ?>">
 <?php if (!$bare): ?>

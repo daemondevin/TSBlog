@@ -565,9 +565,13 @@
             // Long lists open at the selected item instead of at the top
             const $sel = self.$viewport.find('.ts-select-item--selected').first();
             if ($sel.length) {
-                const v = self.$viewport[0];
-                const delta = $sel[0].getBoundingClientRect().top - v.getBoundingClientRect().top;
-                v.scrollTop = Math.max(0, v.scrollTop + delta - (v.clientHeight - $sel[0].offsetHeight) / 2);
+                const v  = self.$viewport[0];
+                const vr = v.getBoundingClientRect();
+                // The dropdown opens with a small scale transform, which shortens every measured distance
+                // (by a hundred pixels or more in a long list), so divide it out
+                const k  = (vr.height / (v.offsetHeight || 1)) || 1;
+                const y  = ($sel[0].getBoundingClientRect().top - vr.top) / k + v.scrollTop;
+                v.scrollTop = Math.max(0, y - (v.clientHeight - $sel[0].offsetHeight) / 2);
             }
             self.$content[0].focus();
             self.$el[0].dispatchEvent(new CustomEvent('ts.select.open', {

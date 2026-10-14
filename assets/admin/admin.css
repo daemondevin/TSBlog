@@ -85,7 +85,7 @@ body.focus-mode .details{display:none}
 .card-block h2{font-size:1.05rem;margin-top:.4rem}.card-block h2:first-child{margin-top:0}
 .card-block label{display:flex;flex-direction:column;gap:.3rem;font-weight:600;font-size:.88rem}
 .card-block label small,.card-block label .muted{font-weight:400}
-.card-block label.check{flex-direction:column}.card-block label.check input{width:auto;align-self:flex-start;margin-bottom:.2rem}
+.card-block label.check{display:grid;grid-template-columns:auto 1fr;column-gap:.6rem;row-gap:.15rem;align-items:start}.card-block label.check input{width:auto;margin:.22rem 0 0}.card-block label.check>:not(input){grid-column:2}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}@media (max-width:36rem){.grid2{grid-template-columns:1fr}}
 details summary{cursor:pointer;font-weight:600;margin:.3rem 0 .9rem}details>label{margin-bottom:.9rem}
 .card-block .btn{align-self:flex-start}
@@ -115,7 +115,7 @@ details summary{cursor:pointer;font-weight:600;margin:.3rem 0 .9rem}details>labe
 .notes{white-space:pre-wrap;font:.85rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:color-mix(in srgb,var(--fg) 6%,transparent);border-radius:8px;padding:.7rem .9rem;margin:0;max-height:14rem;overflow:auto}
 
 /* Themestrap plugins that replace the browser's own controls follow the admin palette in light and dark */
-:root{--ctl-h:2.45rem;
+:root{--ctl-h:2.6rem;
   --ts-ni-h:var(--ctl-h);--ts-ni-bg:transparent;--ts-ni-border:var(--line);--ts-ni-border-focus:var(--accent);--ts-ni-text:var(--fg);--ts-ni-muted:var(--muted);
   --ts-ni-btn-bg:color-mix(in srgb,var(--fg) 5%,transparent);--ts-ni-btn-hover:color-mix(in srgb,var(--fg) 12%,transparent);--ts-ni-focus-ring:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);--ts-ni-radius:7px;
   --ts-tp-h:var(--ctl-h);--ts-tp-bg:transparent;--ts-tp-border:var(--line);--ts-tp-border-focus:var(--accent);--ts-tp-text:var(--fg);--ts-tp-muted:var(--muted);--ts-tp-pop-bg:var(--panel);
@@ -131,5 +131,6 @@ details summary{cursor:pointer;font-weight:600;margin:.3rem 0 .9rem}details>labe
 .card-block .field,.details .field{display:flex;flex-direction:column;gap:.3rem}
 .card-block .field .lbl{font-weight:600;font-size:.88rem}.card-block .field small{font-weight:400}
 details>.field{margin-bottom:.9rem}
-.date-row .ts-tp{flex:0 0 9.6rem}
+.date-row .btn{white-space:nowrap;min-width:0}
+.date-row .ts-tp{flex:0 0 7.9rem;min-width:0}
 .ts-dlg-prompt [data-dialog-panel]{border:1px solid var(--line)}

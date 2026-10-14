@@ -170,14 +170,13 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
     <button class="btn" type="button" id="recheck" data-probe="<?= e($probe) ?>">Test my server again</button> <span id="recheck-msg" class="muted"></span>
   </section>
 </main>
-<?php $A = ts_file('assets/admin'); ?>
-<script src="<?= e($A) ?>/jquery.min.js"></script>
-<script src="<?= e($A) ?>/themestrap/namespace.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.dialog.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.select.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.numberinput.js"></script>
-<script src="<?= e($A) ?>/prompts.js"></script>
-<script src="<?= e($A) ?>/settings-ui.js"></script>
-<script src="<?= e(ts_file('assets/admin/probe.js')) ?>"></script>
-<script src="<?= e(ts_file('assets/admin/settings.js')) ?>"></script>
-<script src="<?= e(ts_file('assets/admin/update.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/jquery.min.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/namespace.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.dialog.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.select.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.numberinput.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/prompts.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/settings-ui.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/probe.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/settings.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/update.js')) ?>"></script>

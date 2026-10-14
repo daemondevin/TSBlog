@@ -196,7 +196,7 @@ The editor page is a plain HTML form enhanced by `assets/admin/editor.js`, which
 | `PluginNumberInput` | The number fields in Settings (posts per page, posts in the feed) |
 | `PluginRichEditor` | Simple mode, with Markdown typing shortcuts and Markdown output |
 | `PluginMarkdownEditor` | Markdown mode, with toolbar and preview |
-| `PluginTagsInput` | The tag field |
+| `PluginTagsInput` | The tag field. Pastes split into separate tags, and its options mirror `TSStore::parseTags` (the characters removed, case-insensitive duplicates, the limit of 20) so the chips match what the server keeps |
 | `PluginDialog` | Every question or notice, through `PluginDialog.confirm()` and `alert()`. The admin never uses the browser's own `confirm()` or `alert()` boxes |
 | `PluginToolbar`, `PluginMarkdown` | Used by the editors |
 
@@ -207,6 +207,10 @@ The editor page is a plain HTML form enhanced by `assets/admin/editor.js`, which
 Leaving the editor with unsaved changes is covered twice. Clicking a link inside the page asks through a dialog. Closing or reloading the tab still shows the browser's own warning (`beforeunload`), because no script is allowed to replace that one.
 
 `assets/admin/settings-ui.js` turns the Settings dropdowns into `PluginSelect` and the number fields into `PluginNumberInput`. The real `<select>` and `<input>` elements stay in the form and keep the values, so saving works exactly as before. `assets/admin/admin.css` maps each plugin's `--ts-*` colour tokens to the admin palette in light and dark.
+
+### Admin files are versioned
+
+Every admin script, stylesheet and icon font is linked as `file.js?v=<modification time>` (`ts_file_v()` in `lib/app.php`). When an update or a re-upload changes a file, its address changes too, so a browser can never keep running an old script against a page that expects the new one. Without this, a cached `editor.js` from before an update could leave a new control (such as the time picker) as a plain, unwired box.
 
 ### Sign-in and setup
 

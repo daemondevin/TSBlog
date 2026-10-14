@@ -129,7 +129,8 @@
         }
         .ts-ni input.ts-ni-input::-webkit-outer-spin-button,
         .ts-ni input.ts-ni-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .ts-ni--block input.ts-ni-input { width: auto; }
+        /* In block mode the value field is fluid, and must not bring the input's intrinsic width into the minimum width */
+        .ts-ni--block input.ts-ni-input { flex: 1 1 0%; width: 0; min-width: 0; }
         .ts-ni-unit { padding-right: .6rem; color: var(--ni-muted); font-size: .85em; pointer-events: none; white-space: nowrap; }
 
         .ts-ni-btn {

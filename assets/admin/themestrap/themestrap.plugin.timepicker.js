@@ -35,7 +35,7 @@
  * CSS custom properties (all optional):
  *   --ts-tp-h, --ts-tp-bg, --ts-tp-border, --ts-tp-border-focus, --ts-tp-radius, --ts-tp-text,
  *   --ts-tp-muted, --ts-tp-pop-bg, --ts-tp-hover, --ts-tp-accent, --ts-tp-accent-text,
- *   --ts-tp-focus-ring, --ts-tp-shadow
+ *   --ts-tp-focus-ring, --ts-tp-shadow, --ts-tp-input-width (when not block)
  *
  * Init.js wiring:
  *   if ($.isFunction($.fn['themestrapPluginTimePicker']) && $('[data-plugin-timepicker]').length) {
@@ -88,13 +88,14 @@
         [data-bs-theme="dark"] .ts-tp { ${DARK} }
         [data-bs-theme="light"] .ts-tp { ${LIGHT} }
 
-        .ts-tp { position: relative; display: inline-block; color: var(--tp-text); }
+        .ts-tp { position: relative; display: inline-block; min-width: 0; color: var(--tp-text); }
         .ts-tp--block { display: block; }
         .ts-tp-field {
             display: flex;
             align-items: center;
             gap: .45rem;
             height: var(--tp-h);
+            min-width: 0;
             padding: 0 .35rem 0 .7rem;
             background: var(--tp-bg);
             border: 1px solid var(--tp-border);
@@ -105,10 +106,12 @@
         .ts-tp-field:focus-within, .ts-tp.is-open .ts-tp-field { border-color: var(--tp-border-focus); box-shadow: var(--tp-ring); }
         .ts-tp--disabled { opacity: .55; }
         .ts-tp-icon { display: inline-flex; color: var(--tp-muted); }
+        /* The input must not bring its own intrinsic width (about 20 characters) into the field's minimum width,
+           or a field in a narrow column overflows it. Fluid in block mode, a fixed width otherwise. */
         input.ts-tp-input {
-            flex: 1 1 auto;
-            min-width: 4.5rem;
-            width: 5.5rem;
+            flex: 1 1 0%;
+            min-width: 0;
+            width: 0;
             height: 100%;
             margin: 0;
             padding: 0;
@@ -120,7 +123,7 @@
             box-shadow: none;
         }
         input.ts-tp-input::placeholder { color: var(--tp-muted); }
-        .ts-tp--block input.ts-tp-input { width: auto; }
+        .ts-tp:not(.ts-tp--block) input.ts-tp-input { flex: 0 0 auto; width: var(--ts-tp-input-width, 5.5rem); }
         .ts-tp-toggle {
             display: inline-flex; align-items: center; justify-content: center;
             width: 1.9rem; height: 1.9rem; padding: 0; border: 0; border-radius: 5px;
@@ -286,8 +289,9 @@
                 self.$labels.on(`click${self._ns}`, (e) => { e.preventDefault(); self.$input.trigger('focus'); });
             }
             self.$toggle = $(`<button type="button" class="ts-tp-toggle" tabindex="-1" aria-label="${o.labels.choose}">${ICON_CLOCK}</button>`);
-            self.$field = $('<div class="ts-tp-field"></div>')
-                .append($(`<span class="ts-tp-icon" aria-hidden="true">${ICON_CLOCK}</span>`), self.$input);
+            self.$field = $('<div class="ts-tp-field"></div>');
+            if (o.icon) self.$field.append($(`<span class="ts-tp-icon" aria-hidden="true">${ICON_CLOCK}</span>`));
+            self.$field.append(self.$input);
             if (!o.inline) self.$field.append(self.$toggle);
 
             self.$pop = $(`<div class="ts-tp-pop" id="${popId}" role="dialog" aria-label="${o.labels.choose}"></div>`);
@@ -612,6 +616,7 @@
         placeholder: 'Time',
         ariaLabel:   'Time',
         block:       false,         // fill the width of the parent
+        icon:        true,          // a clock at the left of the field (the clock button stays at the right)
         inline:      false,         // show the columns in the page instead of a popover
         showNow:     true,          // a "Now" link in the popover
         openOnClick: true,          // clicking the field opens the popover

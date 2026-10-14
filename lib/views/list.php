@@ -38,5 +38,5 @@
   <div class="empty-state"><p>No posts yet.</p><a class="btn primary" href="<?= e(ts_url('admin/new')) ?>">Write your first post</a></div>
   <?php endif; ?>
 </main>
-<script src="<?= e(ts_file('assets/admin/list.js')) ?>"></script>
-<script src="<?= e(ts_file('assets/admin/update.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/list.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/update.js')) ?>"></script>

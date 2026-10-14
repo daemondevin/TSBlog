@@ -1,3 +1,17 @@
+/**
+ * Themestrap TagsInput
+ *
+ * Turns a text input into a field of removable tags. The source input keeps the tags as "a, b, c".
+ *
+ * Adding tags:
+ *   - Type a tag and press Enter, Tab, comma or semicolon.
+ *   - Paste a list: "a, b, c", one tag per line, a column copied from a spreadsheet. Every item becomes its
+ *     own tag. A single pasted word is just inserted as text, so you can still edit it before pressing Enter.
+ *   - Text that arrives any other way (drag and drop, a phone keyboard, dictation) is split the same way.
+ *
+ * Options: separators, splitOnSpace, maxTags, ignoreCase, normalize (see PluginTagsInput.defaults).
+ * Events:  ts.tagsinput.add, ts.tagsinput.remove, ts.tagsinput.paste (detail: { added, skipped, tags }).
+ */
 // TagsInput
 (((themestrap = {}, $) => {
     const instanceName = '__tagsinput';
@@ -6,6 +20,7 @@
 
     const INJECTED_CSS = `
         .ts-tagsinput {
+            position: relative;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
@@ -36,6 +51,14 @@
         }
         .ts-tagsinput-source {
             display: none !important;
+        }
+        .ts-ti-live {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
         }
         .ts-tagsinput-tags {
             display: contents;
@@ -123,6 +146,15 @@
             this.options = $.extend(true, {}, PluginTagsInput.defaults, opts, {
                 wrapper: this.$el
             });
+
+            // What ends a tag when text is pasted, dropped or inserted. A comma always does, because the source
+            // input stores the tags comma separated.
+            const o     = this.options;
+            const chars = (',' + String(o.separators || '') + '\r').split('').filter((c, i, a) => a.indexOf(c) === i);
+            const esc   = chars.map(c => c === '\n' ? '\\n' : c === '\r' ? '\\r' : c === '\t' ? '\\t' : c.replace(/[\\\]\^-]/g, '\\$&')).join('');
+            const space = o.splitOnSpace === 'auto' ? !!o.validateEmail : !!o.splitOnSpace;
+            this._sepRe = new RegExp('[' + esc + (space ? '\\s' : '') + ']+');
+            this._hasSep = new RegExp('[' + esc + (space ? '\\s' : '') + ']');
             return this;
         }
 
@@ -148,7 +180,8 @@
                 self.$field.attr('placeholder', self.options.placeholder);
             }
 
-            self.$container.append(self.$tagArea).append(self.$field);
+            self.$live = $('<span class="ts-ti-live" role="status" aria-live="polite"></span>');
+            self.$container.append(self.$tagArea).append(self.$field).append(self.$live);
             self.options.wrapper.addClass('ts-tagsinput-source').after(self.$container);
 
             if (self.initialValue) {
@@ -170,6 +203,32 @@
                     self.$container.removeClass('ts-ti-focused');
                     const val = $(this).val().trim();
                     if (val) { self.addTag(val); $(this).val(''); }
+                })
+                .on('paste.tagsinput', function(e) {
+                    const cd     = (e.originalEvent || e).clipboardData || window.clipboardData;
+                    const pasted = cd ? cd.getData('text') : '';
+                    // One entry: let the browser paste it as text so it can still be edited
+                    if (!pasted || !self._hasSep.test(pasted.trim())) return;
+
+                    e.preventDefault();
+                    const el  = this;
+                    const val = el.value;
+                    const a   = typeof el.selectionStart === 'number' ? el.selectionStart : val.length;
+                    const b   = typeof el.selectionEnd   === 'number' ? el.selectionEnd   : a;
+                    el.value  = '';
+                    const result = self.addTags(val.slice(0, a) + pasted + val.slice(b));
+                    self._announce(result);
+                    self.$el[0].dispatchEvent(new CustomEvent('ts.tagsinput.paste', {
+                        detail: { added: result.added, skipped: result.skipped, tags: self.getTags() },
+                        bubbles: true
+                    }));
+                })
+                .on('input.tagsinput', function(e) {
+                    // Text that did not come from the keyboard shortcuts or a paste (drop, phone keyboards, dictation)
+                    if ((e.originalEvent || e).isComposing || !self._hasSep.test(this.value)) return;
+                    const parts = this.value.split(self._sepRe);
+                    this.value  = parts.pop();                  // what is still being typed stays in the field
+                    if (parts.length) self.addTags(parts.join(','));
                 })
                 .on('keydown.tagsinput', function(e) {
                     const val = $(this).val().trim();
@@ -201,42 +260,99 @@
             return this;
         }
 
+        // Cleans one entry: trimmed, then through the normalize option
+        _clean(text) {
+            let t = String(text == null ? '' : text).trim();
+            if (typeof this.options.normalize === 'function') t = String(this.options.normalize(t) == null ? '' : this.options.normalize(t)).trim();
+            return t;
+        }
+
+        _has(tag) {
+            if (!this.options.ignoreCase) return this.tags.indexOf(tag) !== -1;
+            const low = tag.toLowerCase();
+            return this.tags.some(t => t.toLowerCase() === low);
+        }
+
+        _shake() {
+            const self = this;
+            self.$container.addClass('ts-ti-invalid');
+            setTimeout(() => self.$container.removeClass('ts-ti-invalid'), 700);
+        }
+
+        // Adds one entry and says what happened: 'added', 'invalid', 'duplicate', 'max' or 'empty'
+        _addOne(text) {
+            const self = this;
+            const tag  = self._clean(text);
+            if (!tag) return { status: 'empty', tag };
+
+            if (self.options.validateEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tag)) return { status: 'invalid', tag };
+            if (self._has(tag)) return { status: 'duplicate', tag };
+            if (self.options.maxTags > 0 && self.tags.length >= self.options.maxTags) return { status: 'max', tag };
+
+            self.tags.push(tag);
+            self._syncInput();
+
+            const $tag = $(`<span class="ts-tag"></span>`)
+                .text(tag)
+                .append(' <button type="button" class="ts-tag-remove" aria-label="Remove">&times;</button>')
+                .data('ts-tag', tag);
+            self.$tagArea.append($tag);
+            return { status: 'added', tag };
+        }
+
         addTag(text, silent) {
             const self = this;
             if (!text || typeof text !== 'string') return this;
 
-            const trimmed = text.trim();
-            if (!trimmed) return this;
-
-            if (self.options.validateEmail) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!re.test(trimmed)) {
-                    self.$container.addClass('ts-ti-invalid');
-                    setTimeout(() => self.$container.removeClass('ts-ti-invalid'), 700);
-                    return this;
-                }
+            // "a, b" is two tags, not one tag with a comma in it
+            if (self._hasSep.test(text.trim())) {
+                self.addTags(text, silent);
+                return this;
             }
 
-            if (self.tags.indexOf(trimmed) !== -1) return this;
-
-            self.tags.push(trimmed);
-            self._syncInput();
-
-            const $tag = $(`<span class="ts-tag"></span>`)
-                .text(trimmed)
-                .append(' <button type="button" class="ts-tag-remove" aria-label="Remove">&times;</button>')
-                .data('ts-tag', trimmed);
-
-            self.$tagArea.append($tag);
-
-            if (!silent) {
+            const r = self._addOne(text);
+            if (r.status === 'invalid' || r.status === 'max') self._shake();
+            if (r.status === 'added' && !silent) {
                 self.$el[0].dispatchEvent(new CustomEvent('ts.tagsinput.add', {
-                    detail: { tag: trimmed, tags: self.getTags() },
+                    detail: { tag: r.tag, tags: self.getTags() },
                     bubbles: true
                 }));
             }
-
             return this;
+        }
+
+        // Splits text into entries and adds each one. Returns { added: [tags], skipped: [{ tag, reason }] }.
+        addTags(text, silent) {
+            const self    = this;
+            const added   = [];
+            const skipped = [];
+            if (typeof text !== 'string') return { added, skipped };
+
+            text.split(self._sepRe).forEach(part => {
+                const r = self._addOne(part);
+                if (r.status === 'added') {
+                    added.push(r.tag);
+                    if (!silent) {
+                        self.$el[0].dispatchEvent(new CustomEvent('ts.tagsinput.add', {
+                            detail: { tag: r.tag, tags: self.getTags() },
+                            bubbles: true
+                        }));
+                    }
+                } else if (r.status !== 'empty') {
+                    skipped.push({ tag: r.tag, reason: r.status });
+                }
+            });
+
+            if (skipped.some(k => k.reason === 'invalid' || k.reason === 'max')) self._shake();
+            return { added, skipped };
+        }
+
+        // A short note for screen readers after a batch
+        _announce(result) {
+            const m = this.options.messages;
+            let text = result.added.length ? m.added.replace('%n', result.added.length) : '';
+            if (result.skipped.length) text += (text ? ', ' : '') + m.skipped.replace('%n', result.skipped.length);
+            this.$live.text(text);
         }
 
         removeTag(text) {
@@ -281,7 +397,13 @@
 
     PluginTagsInput.defaults = {
         placeholder:   'Add address...',
-        validateEmail: true
+        validateEmail: true,
+        separators:    ',;\n\t',    // what ends a tag when text is pasted or dropped. A comma always does. '' for commas only
+        splitOnSpace:  'auto',        // also split on whitespace. 'auto' follows validateEmail: addresses never contain spaces, keywords often do
+        maxTags:       0,             // 0 for no limit. Extra tags are skipped (reason 'max') and the field shakes
+        ignoreCase:    false,         // treat "Web" and "web" as the same tag
+        normalize:     null,          // function (text) { return text; } runs on every entry before it is checked
+        messages:      { added: '%n added', skipped: '%n skipped' }   // spoken to screen readers after a paste
     };
 
     $.extend(themestrap, { PluginTagsInput });

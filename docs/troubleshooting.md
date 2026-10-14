@@ -117,6 +117,10 @@ Simple mode keeps most things but not raw HTML or embeds. A post that contains H
 
 Copy the `content`, `uploads` and `data` folders with your FTP program instead.
 
+### A control in the admin looks plain or does nothing
+
+If the time picker, a dropdown or a stepper shows up as an ordinary box, the browser is almost certainly running an old copy of a script. Admin files are versioned so this should fix itself on the next page load. If it does not, press **Ctrl + F5** (or **Cmd + Shift + R** on a Mac) once, and check that the whole `assets` folder was uploaded.
+
 ## Updates
 
 ### The Updates card says automatic updating is not available

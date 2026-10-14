@@ -8,7 +8,6 @@ $cfgJson = json_encode([
     'list' => ts_url('admin'), 'siteUrl' => ts_abs(), 'limit' => ts_upload_limit(), 'allowHtml' => (bool) ts_cfg('allow_html'), 'original' => $isNew ? '' : $p['slug'], 'status' => $p['status'],
     'body' => $p['body'], 'key' => 'tsblog-draft-' . ($isNew ? 'new' : $p['slug']),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
-$A = ts_file('assets/admin');
 ?>
 <script type="application/json" id="ts-config"><?= $cfgJson ?></script>
 
@@ -83,16 +82,16 @@ $A = ts_file('assets/admin');
 
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="<?= e($A) ?>/jquery.min.js"></script>
-<script src="<?= e($A) ?>/themestrap/namespace.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.toolbar.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.dialog.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.tagsinput.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.markdown.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.richeditor.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.calendar.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.select.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.timepicker.js"></script>
-<script src="<?= e($A) ?>/themestrap/themestrap.plugin.markdowneditor.js"></script>
-<script src="<?= e($A) ?>/prompts.js"></script>
-<script src="<?= e($A) ?>/editor.js"></script>
+<script src="<?= e(ts_file_v('assets/admin/jquery.min.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/namespace.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.toolbar.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.dialog.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.tagsinput.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.markdown.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.richeditor.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.calendar.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.select.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.timepicker.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.markdowneditor.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/prompts.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/editor.js')) ?>"></script>

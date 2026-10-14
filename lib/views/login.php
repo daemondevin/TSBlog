@@ -63,8 +63,8 @@
     </button>
   </form>
 </main>
-<script src="<?= e(ts_file('assets/admin/jquery.min.js')) ?>"></script>
-<script src="<?= e(ts_file('assets/admin/themestrap/namespace.js')) ?>"></script>
-<script src="<?= e(ts_file('assets/admin/themestrap/themestrap.plugin.auth.js')) ?>"></script>
-<script src="<?= e(ts_file('assets/admin/probe.js')) ?>"></script>
-<script src="<?= e(ts_file('assets/admin/auth-init.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/jquery.min.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/namespace.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/themestrap/themestrap.plugin.auth.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/probe.js')) ?>"></script>
+<script src="<?= e(ts_file_v('assets/admin/auth-init.js')) ?>"></script>

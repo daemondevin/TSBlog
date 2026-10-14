@@ -76,7 +76,7 @@ A copy of what you type is kept in your browser every moment. If your connection
 | Address | The URL slug. Follows the title until you edit it. Letters, numbers and dashes only |
 | Publish date | Pick the day from the calendar (the date button). Set the time beside it: click the clock to choose an hour, minutes and AM or PM, or just type it (`8:30pm`, `830` and `20:30` all work). The arrow keys change the minutes. A future date schedules the post, and it appears on its own when the time arrives. The note under the field tells you which it is. **Now** resets to the present |
 | Type | **Post** appears in lists and the feed. **Page** appears in the menu and stays out of the feed |
-| Tags | Type a tag and press Enter. Up to 20 per post |
+| Tags | Type a tag and press Enter, or **paste a list** (separated by commas, semicolons or one per line) and every item becomes its own tag. Up to 20 per post. The chips show exactly what will be saved: special characters (`# " ' / ? %`) are removed, extra spaces collapsed, and `Web` and `web` count as one tag. After a paste, a note tells you if anything was already there or over the limit |
 | Summary for search engines | The meta description and social card text. Aim for 160 characters. If empty, the opening paragraph is used |
 | Cover image | Shown at the top of the post and used for social cards |
 

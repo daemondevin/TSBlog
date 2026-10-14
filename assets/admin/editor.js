@@ -76,7 +76,13 @@
     renderer: renderServer, previewDelay: 300, placeholder: 'Write your story. Markdown works here.'
   }) && $body.data('__pluginMarkdownEditor');
 
-  var tags = $('#f-tags').themestrapPluginTagsInput({ placeholder: 'Add a tag and press Enter', validateEmail: false }) && $('#f-tags').data('__tagsinput');
+  // These mirror what the server keeps (TSStore::parseTags), so the chips show exactly what will be saved:
+  // special characters dropped, spaces collapsed, "Web" and "web" the same tag, 20 at most
+  var MAX_TAGS = 20;
+  var tags = $('#f-tags').themestrapPluginTagsInput({
+    placeholder: 'Type or paste tags', validateEmail: false, maxTags: MAX_TAGS, ignoreCase: true,
+    normalize: function (t) { return t.replace(/["'<>,\/\\?#%]/g, '').replace(/\s+/g, ' ').trim(); }
+  }) && $('#f-tags').data('__tagsinput');
 
   // Selects and the time picker (the dialogs are PluginDialog prompts, see prompts.js)
   $('#details [data-plugin-select]').each(function () {
@@ -144,6 +150,16 @@
   $('#details').on('input change', 'input, textarea, select', markDirty);
   tags && $('#f-tags')[0].addEventListener('ts.tagsinput.add', markDirty);
   tags && $('#f-tags')[0].addEventListener('ts.tagsinput.remove', markDirty);
+  // After pasting a list, say what was left out
+  tags && $('#f-tags')[0].addEventListener('ts.tagsinput.paste', function (e) {
+    var d = e.detail, dup = 0, over = 0;
+    d.skipped.forEach(function (k) { if (k.reason === 'max') over++; else dup++; });
+    if (!dup && !over) return;
+    var parts = [];
+    if (dup)  parts.push(dup + (dup === 1 ? ' was already there' : ' were already there'));
+    if (over) parts.push(over + (over === 1 ? ' was left out' : ' were left out') + ' because a post can have ' + MAX_TAGS + ' tags');
+    toast('Added ' + d.added.length + (d.added.length === 1 ? ' tag' : ' tags') + '. ' + parts.join(', ') + '.', !!over);
+  });
 
   // Offer to restore a newer local copy (for example after a lost connection)
   try {
@@ -177,7 +193,7 @@
         : 'In the past or now, so a published post shows straight away.');
       if (fromUser) markDirty();
     }
-    $('#f-time').themestrapPluginTimePicker({ minuteStep: 5, placeholder: 'Time', defaultTime: '09:00', block: true });
+    $('#f-time').themestrapPluginTimePicker({ minuteStep: 5, placeholder: 'Time', defaultTime: '09:00', block: true, icon: false });
     var tpicker = $('#f-time').data('__pluginTimePicker');
     sync(false);
 
