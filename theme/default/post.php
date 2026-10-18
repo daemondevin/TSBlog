@@ -9,7 +9,8 @@
     <div class="meta"><time datetime="<?= e(date('c', strtotime($post['date']))) ?>"><?= e(ts_date($post['date'])) ?></time> · <?= (int) $post['minutes'] ?> min read<?php if (!empty($GLOBALS['ts_admin']) && $live): ?> · <a href="<?= e(ts_url('admin/edit/' . $post['slug'])) ?>">Edit</a><?php endif; ?></div>
     <?php endif; ?>
     <h1><?= e($post['title']) ?></h1>
-    <?php if ($post['image'] !== ''): ?><img class="cover" src="<?= e($post['image']) ?>" alt=""><?php endif; ?>
+    <?php if ($m = ts_media($post)): ?><?= TSMedia::html($m) ?>
+    <?php elseif ($post['image'] !== ''): ?><img class="cover" src="<?= e($post['image']) ?>" alt=""><?php endif; ?>
   </header>
   <div class="prose"><?= $post['html'] ?></div>
   <?php if ($post['tags']): ?><p class="tags"><?php foreach ($post['tags'] as $t): ?><a href="<?= e(ts_url('tag/' . mb_strtolower($t))) ?>"><?= e($t) ?></a><?php endforeach; ?></p><?php endif; ?>

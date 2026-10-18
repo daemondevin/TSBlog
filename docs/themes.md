@@ -2,9 +2,20 @@
 
 A theme controls everything readers see. The default theme is small on purpose: about 6 KB of CSS, a 0.7 KB script, system fonts and no frameworks. You can restyle it, or make your own.
 
+## Included themes
+
+| Theme | What it is |
+| - | - |
+| `default` | Small and quiet: one column, system serif text, about 6 KB of CSS |
+| `themestrap` | A blog layout in the style of Themestrap: sticky header, page header with breadcrumb, large entries with a date badge, a sidebar (search, categories, recent and updated posts, tags) and a dark footer. It shows every [entry format](writing.md#entry-formats): a standard image, a slider, a gallery with a lightbox, video, audio and CodePen embeds |
+
+Choose one in Settings (Theme) or with `'theme' => 'themestrap'` in `config.php`. To recolor `themestrap`, change `--accent` (and the dark mode value under `[data-theme=dark]`) at the top of its `style.css`.
+
+The `themestrap` theme has no dependencies: its slider, lightbox, tabs, menu and dark mode are one small `theme.js`. It does not need Bootstrap, jQuery (except the optional "keep reading" fade) or an icon font.
+
 ## Make your own theme
 
-Never edit `theme/default/` directly, because an update would overwrite your changes.
+Never edit `theme/default/` or `theme/themestrap/` directly, because an update would overwrite your changes.
 
 1. Copy `theme/default` to `theme/mine`.
 2. Set `'theme' => 'mine'` in `config.php`.
@@ -71,6 +82,7 @@ Every template is plain PHP with HTML. There is no template language to learn.
 | - | - |
 | `$posts` | The posts to list, see the post fields below |
 | `$page`, `$pages` | The current page number and the page count |
+| `$base` | The route the list lives at, such as `''` or `tag/design`, for building page links |
 | `$newer`, `$older` | URLs of the neighboring pages, or `null` |
 | `$heading` | A heading such as `Tagged “design”`, or `null` on the home page |
 | `$search` | Set only on the search page: the text that was searched |
@@ -91,7 +103,7 @@ Every template is plain PHP with HTML. There is no template language to learn.
 
 ### Post fields
 
-Posts in lists have these keys: `slug`, `title`, `date`, `updated`, `status`, `type`, `tags` (array), `description`, `image`, `excerpt`, `words`, `minutes`. A full post adds `body` and, on the post page, `html`.
+Posts in lists have these keys: `slug`, `title`, `date`, `updated`, `status`, `type`, `tags` (array), `description`, `image`, `format`, `media` (array), `excerpt`, `words`, `minutes`. A full post adds `body` and, on the post page, `html`.
 
 ## Helper functions
 
@@ -106,6 +118,9 @@ Posts in lists have these keys: `slug`, `title`, `date`, `updated`, `status`, `t
 | `ts_asset('file')` | The URL of a file in your theme, with a version for cache busting |
 | `ts_cfg('key')` | Read a setting from `config.php`, such as `ts_cfg('title')` |
 | `ts_render($markdown)` | Render Markdown to HTML |
+| `ts_media($post)` | What a post's format shows, or `null` for a standard post. An array with a `kind`: `images` (with `items` and `mode`), `iframe`, `video` or `audio` |
+| `TSMedia::html($media, 'class')` | Safe markup for a resolved player. Classes are `class`, `class-frame`, `class-16x9` and so on, for you to style |
+| `TSMedia::firstImage($post)` | The cover image, or the first picture of a slider or gallery |
 
 `$GLOBALS['ts_admin']` is `true` when the author is signed in, which the default theme uses to show an Edit link.
 
@@ -142,7 +157,7 @@ A footer line with the author:
 - Keep CSS in one file and load it from `<head>`. The default does.
 - Prefer system fonts. A web font costs a request and a layout shift.
 - Add a script only when it earns its place. The public pages send a Content Security Policy that allows scripts only from your own site, so inline `<script>` blocks will not run. Put code in a `.js` file in your theme. Post pages also allow inline styles when the “keep reading” fade is on, because Themestrap plugins add their CSS that way.
-- Embeds need `'allow_html' => true`. Without it, iframes are blocked by the Content Security Policy.
+- Players from entry formats (YouTube, Vimeo, CodePen, SoundCloud, Spotify) are always allowed by the Content Security Policy. Any other iframe, typed by hand into a post, needs `'allow_html' => true`.
 
 ## Reading aids on post pages
 

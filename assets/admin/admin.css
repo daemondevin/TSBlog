@@ -134,3 +134,6 @@ details>.field{margin-bottom:.9rem}
 .date-row .btn{white-space:nowrap;min-width:0}
 .date-row .ts-tp{flex:0 0 7.9rem;min-width:0}
 .ts-dlg-prompt [data-dialog-panel]{border:1px solid var(--line)}
+
+#f-media{font:.85rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical}
+.details [hidden]{display:none!important}

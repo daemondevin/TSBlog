@@ -4,6 +4,7 @@ defined('TS_ROOT') or exit;
 
 require_once __DIR__ . '/compat.php';
 require_once __DIR__ . '/markdown.php';
+require_once __DIR__ . '/media.php';
 require_once __DIR__ . '/store.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/version.php';
@@ -80,8 +81,8 @@ function ts_headers(bool $admin = false, bool $inlineStyles = false): void
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('X-Frame-Options: SAMEORIGIN');
     $style = $admin || $inlineStyles ? "'self' 'unsafe-inline'" : "'self'";
-    // Embeds (video, audio, maps) are only allowed when raw HTML is enabled
-    $frames = !$admin && ts_cfg('allow_html') ? " frame-src https:; media-src 'self' https:;" : '';
+    // Players from the supported list are always allowed (entry formats). Any https frame needs raw HTML enabled.
+    $frames = $admin ? '' : (ts_cfg('allow_html') ? " frame-src https:;" : ' frame-src ' . implode(' ', TSMedia::FRAME_HOSTS) . ';') . " media-src 'self' https:;";
     header("Content-Security-Policy: default-src 'self'; img-src 'self' https: data:; style-src $style; script-src 'self';$frames base-uri 'self'; form-action 'self'; frame-ancestors 'self'");
 }
 

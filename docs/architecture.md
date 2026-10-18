@@ -21,6 +21,7 @@ lib/
   app.php              URLs, HTTP, sessions, CSRF, feed, sitemap
   settings.php         settings layers, private data files, folder setup, health checks
   store.php            the store interface and both drivers
+  media.php            entry formats: validates media addresses and builds safe players
   markdown.php         the Markdown renderer
   admin.php            the admin controller
   compat.php           fallbacks for hosts without mbstring or ctype
@@ -28,7 +29,8 @@ lib/
   update.php           the self updater
   vendor/              bundled third-party code (sodium_compat, used only when PHP has no sodium extension)
   views/               admin templates
-theme/default/         the public theme (templates, style.css, reading.js, post.js, vendor/)
+theme/default/         the plain public theme (templates, style.css, reading.js, post.js, vendor/)
+theme/themestrap/      the Bootstrap style theme (adds functions.php for its helpers)
 assets/admin/          admin interface: stylesheet, scripts, Themestrap plugins
 content/posts/         Markdown files (file store)
 uploads/               pictures

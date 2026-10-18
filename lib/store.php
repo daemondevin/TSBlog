@@ -61,6 +61,9 @@ abstract class TSStore
         $type = ($in['type'] ?? 'post') === 'page' ? 'page' : 'post';
         $image = trim((string) ($in['image'] ?? ''));
         if ($image !== '' && TSMarkdown::safeUrl($image, true) === '') $image = '';
+        $format = $type === 'page' ? 'standard' : TSMedia::format($in['format'] ?? 'standard');
+        [$media, $mediaErrors] = TSMedia::clean($format, TSMedia::parseList($in['media'] ?? []));
+        $errors = array_merge($errors, $mediaErrors);
 
         $post = [
             'slug' => $slug,
@@ -72,6 +75,8 @@ abstract class TSStore
             'tags' => self::parseTags($in['tags'] ?? []),
             'description' => trim(preg_replace('/\s+/', ' ', (string) ($in['description'] ?? ''))),
             'image' => $image,
+            'format' => $format,
+            'media' => $media,
             'body' => $body,
         ];
         return [$post, $errors];
@@ -235,6 +240,8 @@ final class TSFileStore extends TSStore
             'tags' => self::parseTags($meta['tags'] ?? ''),
             'description' => $meta['description'] ?? '',
             'image' => $meta['image'] ?? '',
+            'format' => TSMedia::format($meta['format'] ?? ''),
+            'media' => TSMedia::parseList($meta['media'] ?? ''),
             'body' => ltrim($body, "\n"),
         ];
     }
@@ -256,6 +263,8 @@ final class TSFileStore extends TSStore
             . 'tags: [' . implode(', ', array_map([self::class, 'q'], $p['tags'])) . "]\n";
         if ($p['description'] !== '') $fm .= 'description: ' . self::q($p['description']) . "\n";
         if ($p['image'] !== '') $fm .= 'image: ' . self::q($p['image']) . "\n";
+        if (($p['format'] ?? 'standard') !== 'standard') $fm .= 'format: ' . $p['format'] . "\n";
+        if (!empty($p['media'])) $fm .= 'media: ' . json_encode(array_values($p['media']), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
         return ($this->guard ? self::GUARD : '') . $fm . "---\n\n" . ltrim($p['body'], "\n");
     }
 
@@ -263,7 +272,7 @@ final class TSFileStore extends TSStore
     {
         if ($this->memo !== null) return $this->memo;
         $files = $this->files();
-        $sig = md5(($this->guard ? 'g' : 'p') . implode('|', array_map(fn($f) => basename($f) . filemtime($f) . filesize($f), $files)));
+        $sig = md5('v2' . ($this->guard ? 'g' : 'p') . implode('|', array_map(fn($f) => basename($f) . filemtime($f) . filesize($f), $files)));
         $raw = is_file($this->cacheFile) ? (string) @file_get_contents($this->cacheFile) : '';
         $raw = strpos($raw, '<?php') === 0 ? (string) substr($raw, (int) strpos($raw, "\n") + 1) : $raw;
         $cache = $raw !== '' ? @unserialize($raw, ['allowed_classes' => false]) : false;
@@ -344,19 +353,25 @@ final class TSSqliteStore extends TSStore
             slug TEXT PRIMARY KEY, title TEXT NOT NULL, date TEXT NOT NULL, updated TEXT, status TEXT NOT NULL,
             type TEXT NOT NULL, tags TEXT, description TEXT, image TEXT, body TEXT NOT NULL, excerpt TEXT, words INTEGER, plain TEXT)');
         $this->db->exec('CREATE INDEX IF NOT EXISTS posts_date ON posts(status, type, date)');
+        // Older databases get the entry format columns the first time they are opened
+        $cols = array_column($this->db->query('PRAGMA table_info(posts)')->fetchAll(), 'name');
+        if (!in_array('format', $cols, true)) $this->db->exec("ALTER TABLE posts ADD COLUMN format TEXT NOT NULL DEFAULT 'standard'");
+        if (!in_array('media', $cols, true)) $this->db->exec('ALTER TABLE posts ADD COLUMN media TEXT');
     }
 
     private function hydrate(array $r): array
     {
         $r['tags'] = $r['tags'] === '' || $r['tags'] === null ? [] : json_decode($r['tags'], true);
-        $r['words'] = (int) $r['words'];
+        $r['words'] = (int) ($r['words'] ?? 0);
+        $r['format'] = TSMedia::format($r['format'] ?? '');
+        $r['media'] = TSMedia::parseList($r['media'] ?? '');
         return $r;
     }
 
     public function index(): array
     {
         if ($this->memo !== null) return $this->memo;
-        $rows = $this->db->query('SELECT slug,title,date,updated,status,type,tags,description,image,excerpt,words,plain FROM posts')->fetchAll();
+        $rows = $this->db->query('SELECT slug,title,date,updated,status,type,tags,description,image,format,media,excerpt,words,plain FROM posts')->fetchAll();
         return $this->memo = array_map(function ($r) {
             $r = $this->hydrate($r);
             $r['minutes'] = max(1, (int) ceil($r['words'] / 220));
@@ -372,6 +387,8 @@ final class TSSqliteStore extends TSStore
         if (!$r) return null;
         unset($r['excerpt'], $r['words'], $r['plain']);
         $r['tags'] = $r['tags'] ? json_decode($r['tags'], true) : [];
+        $r['format'] = TSMedia::format($r['format'] ?? '');
+        $r['media'] = TSMedia::parseList($r['media'] ?? '');
         return $r;
     }
 
@@ -383,9 +400,10 @@ final class TSSqliteStore extends TSStore
             $this->db->prepare('DELETE FROM posts WHERE slug = ?')->execute([$oldSlug]);
         }
         $this->db->prepare('INSERT OR REPLACE INTO posts
-            (slug,title,date,updated,status,type,tags,description,image,body,excerpt,words,plain) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
+            (slug,title,date,updated,status,type,tags,description,image,format,media,body,excerpt,words,plain) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
             ->execute([$post['slug'], $post['title'], $post['date'], $post['updated'], $post['status'], $post['type'],
-                json_encode($post['tags'], JSON_UNESCAPED_UNICODE), $post['description'], $post['image'], $post['body'],
+                json_encode($post['tags'], JSON_UNESCAPED_UNICODE), $post['description'], $post['image'],
+                $post['format'] ?? 'standard', json_encode(array_values($post['media'] ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $post['body'],
                 $d['excerpt'], $d['words'], $d['plain']]);
         $this->db->commit();
         $this->memo = null;

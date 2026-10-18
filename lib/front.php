@@ -32,6 +32,7 @@ try {
         }
     });
     $store = TSStore::open($cfg);
+    $GLOBALS['ts_store'] = $store;
 } catch (Throwable $e) {
     @ts_log($e->getMessage());
     ts_friendly_error('The blog could not start', htmlspecialchars($e->getMessage()));
@@ -98,7 +99,7 @@ function ts_list_page(array $all, int $n, int $per, string $base): array
     $first = $b === '' ? '' : $b;
     return [
         'posts' => array_slice($all, ($n - 1) * $per, $per),
-        'page' => $n, 'pages' => $total,
+        'page' => $n, 'pages' => $total, 'base' => $b,
         'newer' => $n > 1 ? ($n === 2 ? ts_url($first) : ts_url($b . '/page/' . ($n - 1))) : null,
         'older' => $n < $total ? ts_url(($b === '' ? '' : $b . '/') . 'page/' . ($n + 1)) : null,
     ];
@@ -189,7 +190,8 @@ if (count($seg) === 1 && TSStore::validSlug($first)) {
             if ($p['slug'] === $post['slug']) { $next = $all[$k - 1] ?? null; $prev = $all[$k + 1] ?? null; break; }
         }
     }
-    $img = $post['image'] !== '' ? ts_absolute_path($post['image']) : '';
+    $cover = TSMedia::firstImage($post);
+    $img = $cover !== '' ? ts_absolute_path($cover) : '';
     $ld = [
         '@context' => 'https://schema.org', '@type' => $post['type'] === 'post' ? 'BlogPosting' : 'WebPage',
         'headline' => $post['title'], 'description' => $desc, 'url' => ts_abs($post['slug']),

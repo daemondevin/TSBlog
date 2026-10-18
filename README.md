@@ -48,7 +48,8 @@ Requirements: PHP 8.1 or newer (every major host offers it, usually under “PHP
 ```
 index.php          starts everything
 lib/               the engine
-theme/default/     what readers see
+theme/default/     the small, plain theme
+theme/themestrap/  a Bootstrap style blog theme with every entry format
 assets/admin/      the admin editor
 content/posts/     your posts
 uploads/           your pictures

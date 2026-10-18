@@ -2,7 +2,9 @@
 defined('TS_ROOT') or exit();
 // Variables: $post (array|null), $csrf
 $isNew = $post === null;
-$p = $post ?? ['slug' => '', 'title' => '', 'date' => date('Y-m-d H:i'), 'status' => 'draft', 'type' => 'post', 'tags' => [], 'description' => '', 'image' => '', 'body' => ''];
+$p = $post ?? ['slug' => '', 'title' => '', 'date' => date('Y-m-d H:i'), 'status' => 'draft', 'type' => 'post', 'tags' => [], 'description' => '', 'image' => '', 'format' => 'standard', 'media' => [], 'body' => ''];
+$fmt = TSMedia::format($p['format'] ?? '');
+$mediaList = (array) ($p['media'] ?? []);
 $cfgJson = json_encode([
     'csrf' => $csrf, 'save' => ts_url('admin/save'), 'delete' => ts_url('admin/delete'), 'upload' => ts_url('admin/upload'), 'render' => ts_url('admin/render'),
     'list' => ts_url('admin'), 'siteUrl' => ts_abs(), 'limit' => ts_upload_limit(), 'allowHtml' => (bool) ts_cfg('allow_html'), 'original' => $isNew ? '' : $p['slug'], 'status' => $p['status'],
@@ -58,6 +60,19 @@ $cfgJson = json_encode([
           <option value="post"<?= $p['type'] === 'post' ? ' selected' : '' ?>>Post (appears in the feed)</option>
           <option value="page"<?= $p['type'] === 'page' ? ' selected' : '' ?>>Page (appears in the menu)</option>
         </select></div></div>
+      <div class="field" id="format-field"<?= $p['type'] === 'page' ? ' hidden' : '' ?>><span class="lbl" id="lbl-f-format">Entry format</span>
+        <div data-plugin-select class="manual"><select id="f-format">
+<?php foreach (TSMedia::FORMATS as $k => $label): ?>
+          <option value="<?= e($k) ?>"<?= $fmt === $k ? ' selected' : '' ?>><?= e($label) ?></option>
+<?php endforeach; ?>
+        </select></div></div>
+      <div class="field" id="media-field"<?= $p['type'] === 'page' || $fmt === 'standard' ? ' hidden' : '' ?>>
+        <span class="lbl" id="media-label">Media</span>
+        <textarea id="f-media" rows="4" spellcheck="false" aria-labelledby="media-label"><?= e(implode("\n", $mediaList)) ?></textarea>
+        <small class="muted" id="media-hint"></small>
+        <button type="button" class="btn" id="media-upload" hidden><i class="fas fa-images"></i> Add pictures</button>
+        <input type="file" id="media-input" accept="image/jpeg,image/png,image/gif,image/webp" multiple hidden>
+      </div>
       <label>Tags
         <input id="f-tags" type="text" class="manual" value="<?= e(implode(', ', $p['tags'])) ?>">
       </label>

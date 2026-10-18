@@ -21,7 +21,7 @@ If something looks wrong after an update, click **Go back to X** in the same pla
 
 | Updated | Never touched |
 | - | - |
-| `index.php`, `lib/`, `assets/`, `tools/migrate.php`, `docs/`, `theme/default/`, `config.sample.php`, `README.md`, `release.json` | `content/`, `uploads/`, `data/`, `config.php`, `.htaccess`, `.user.ini`, any theme other than `default` |
+| `index.php`, `lib/`, `assets/`, `tools/migrate.php`, `docs/`, `theme/default/`, `theme/themestrap/`, `config.sample.php`, `README.md`, `release.json` | `content/`, `uploads/`, `data/`, `config.php`, `.htaccess`, `.user.ini`, any theme other than `default` and `themestrap` |
 
 If you edited files in `theme/default/`, an update replaces them. Copy the theme to a name of your own first and select it in Settings (see [Themes](themes.md)).
 
@@ -89,7 +89,7 @@ The tool protects you, in layers:
 | Safeguard | What it does |
 | - | - |
 | Default location outside the blog folder | The key is never near the files that get packaged |
-| Refuses a key inside a published folder | A key under `lib/`, `assets/`, `tools/`, `docs/` or `theme/default/` stops the build |
+| Refuses a key inside a published folder | A key under `lib/`, `assets/`, `tools/`, `docs/`, `theme/default/` or `theme/themestrap/` stops the build |
 | Refuses key-like files | Any `.key`, `.pem`, `.pub` or `.env` file in a published folder stops the build, naming the file |
 | Scans for the key itself | If the secret appears inside any file about to ship (pasted into a doc, say), the build stops |
 | Never packages `dist/` or the tool itself | Release output and `tools/build-release.php` are left out of every package. Blogs only receive `tools/migrate.php` |

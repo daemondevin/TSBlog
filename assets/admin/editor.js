@@ -91,6 +91,41 @@
     if ($label.length && trigger && trigger.id) trigger.setAttribute('aria-labelledby', $label.attr('id') + ' ' + trigger.id);
   });
 
+  // Entry format: pictures for a slider or gallery, one address for video, audio and embeds
+  var FORMAT_HINTS = {
+    slider: ['Slider pictures', 'One picture address per line. They appear as a slider above the text.'],
+    gallery: ['Gallery pictures', 'One picture address per line. They appear as a grid that opens in a lightbox.'],
+    video: ['Video address', 'A YouTube or Vimeo link, or a link to an mp4 or webm file.'],
+    audio: ['Audio address', 'A SoundCloud or Spotify link, or a link to an mp3 or ogg file.'],
+    embed: ['Embed address', 'A CodePen link (or any YouTube, Vimeo, SoundCloud or Spotify link).']
+  };
+  function syncFormat() {
+    var page = $('#f-type').val() === 'page', f = $('#f-format').val(), h = FORMAT_HINTS[f];
+    $('#format-field').prop('hidden', page);
+    $('#media-field').prop('hidden', page || !h);
+    if (h) {
+      $('#media-label').text(h[0]); $('#media-hint').text(h[1]);
+      $('#f-media').attr('rows', f === 'slider' || f === 'gallery' ? 5 : 2).attr('placeholder', f === 'slider' || f === 'gallery' ? 'https://…/one.jpg' : 'https://');
+      $('#media-upload').prop('hidden', f !== 'slider' && f !== 'gallery');
+    }
+  }
+  $('#f-type, #f-format').on('change', function () { syncFormat(); markDirty(); });
+  $('#f-media').on('input', markDirty);
+  $('#media-upload').on('click', function () { $('#media-input').trigger('click'); });
+  $('#media-input').on('change', function () {
+    var files = Array.prototype.slice.call(this.files); this.value = '';
+    // Upload one after another so the order matches what was picked
+    files.reduce(function (chain, file) {
+      return chain.then(function () {
+        return uploadImage(file).then(function (url) {
+          var $m = $('#f-media'), v = $m.val().replace(/\s+$/, '');
+          $m.val((v ? v + '\n' : '') + url + '\n'); markDirty();
+        });
+      });
+    }, Promise.resolve()).catch(function () {});
+  });
+  syncFormat();
+
   // Auto growing title
 
   function fitTitle() { var t = $title[0]; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
@@ -260,7 +295,8 @@
     return {
       original: state.original, title: $title.val(), slug: $('#f-slug').val(), body: currentMarkdown(),
       date: $('#f-date').val().replace('T', ' '), type: $('#f-type').val(), status: status,
-      tags: tags ? tags.getTags().join(',') : $('#f-tags').val(), description: $('#f-desc').val(), image: $('#f-image').val()
+      tags: tags ? tags.getTags().join(',') : $('#f-tags').val(), description: $('#f-desc').val(), image: $('#f-image').val(),
+      format: $('#f-format').val(), media: $('#f-media').val()
     };
   }
 

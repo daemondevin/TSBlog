@@ -88,7 +88,7 @@ function ts_update_allowed(string $rel): bool
     // Never accept anything that looks like a key or a secret, wherever it hides
     if (preg_match('#(\.(key|pem|pfx|p12)$)|((^|/)\.env)|((^|/)dist/)|(^|/)release\.key#i', $rel)) return false;
     if (in_array($rel, ['index.php', 'config.sample.php', 'README.md', 'release.json'], true)) return true;
-    foreach (['lib/', 'assets/', 'tools/', 'docs/', 'theme/default/'] as $p) {
+    foreach (['lib/', 'assets/', 'tools/', 'docs/', 'theme/default/', 'theme/themestrap/'] as $p) {
         if (strpos($rel, $p) === 0 && substr($rel, -1) !== '/') return true;
     }
     return false;
@@ -98,7 +98,7 @@ function ts_update_allowed(string $rel): bool
 function ts_update_unwritable(): array
 {
     $bad = [];
-    foreach (['', 'lib', 'theme/default', 'assets/admin'] as $d) {
+    foreach (['', 'lib', 'theme', 'theme/default', 'assets/admin'] as $d) {
         $dir = TS_ROOT . ($d === '' ? '' : '/' . $d);
         $t = $dir . '/.write-test-' . bin2hex(random_bytes(2));
         if (!is_dir($dir) || @file_put_contents($t, 'x') === false) $bad[] = $d === '' ? 'the blog folder itself' : $d; else @unlink($t);

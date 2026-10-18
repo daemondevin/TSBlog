@@ -33,7 +33,7 @@ $home = getenv('USERPROFILE') ?: (getenv('HOME') ?: '');
 $defaultKey = ($home !== '' ? $home . DIRECTORY_SEPARATOR . '.tsblog' . DIRECTORY_SEPARATOR : '') . 'release.key';
 
 // Folders whose contents are published in every update. A secret must never be anywhere in these.
-$published = ['lib', 'assets', 'tools', 'docs', 'theme/default'];
+$published = ['lib', 'assets', 'tools', 'docs', 'theme/default', 'theme/themestrap'];
 $keyGuard = function (string $keyPath) use ($root, $published, $fail, $defaultKey) {
     $dir = realpath(dirname($keyPath));
     if ($dir === false) return;

@@ -63,3 +63,10 @@ main{padding-top:2.5rem;padding-bottom:3rem;min-height:60vh}
 .progress-reading .progress-bar{height:100%;width:0;background:var(--accent);transition:width .1s linear}
 @media (prefers-reduced-motion:reduce){.progress-reading .progress-bar{transition:none}}
 @media print{.progress-reading,.ts-ss-page{display:none!important}}
+/* entry formats: video, audio, embeds and picture sets */
+.tsm-frame{position:relative;border-radius:8px;overflow:hidden;background:#000;margin:0 0 1.6rem}
+.tsm-frame iframe,.tsm-frame video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.tsm-16x9{aspect-ratio:16/9}.tsm-soundcloud{height:300px}.tsm-spotify{height:352px}
+.tsm-audio{margin:0 0 1.6rem}.tsm-audio audio{width:100%}
+.tsm-images{display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:.4rem;margin:0 0 1.6rem}
+.tsm-images img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px}

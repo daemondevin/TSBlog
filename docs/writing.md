@@ -76,6 +76,7 @@ A copy of what you type is kept in your browser every moment. If your connection
 | Address | The URL slug. Follows the title until you edit it. Letters, numbers and dashes only |
 | Publish date | Pick the day from the calendar (the date button). Set the time beside it: click the clock to choose an hour, minutes and AM or PM, or just type it (`8:30pm`, `830` and `20:30` all work). The arrow keys change the minutes. A future date schedules the post, and it appears on its own when the time arrives. The note under the field tells you which it is. **Now** resets to the present |
 | Type | **Post** appears in lists and the feed. **Page** appears in the menu and stays out of the feed |
+| Entry format | What sits above the text. **Standard** shows the cover image. **Slider** and **Gallery** take several pictures (one address per line, or **Add pictures** to upload them). **Video**, **Audio** and **Embed** take one address. Only **Post** entries have a format. See [Entry formats](#entry-formats) |
 | Tags | Type a tag and press Enter, or **paste a list** (separated by commas, semicolons or one per line) and every item becomes its own tag. Up to 20 per post. The chips show exactly what will be saved: special characters (`# " ' / ? %`) are removed, extra spaces collapsed, and `Web` and `web` count as one tag. After a paste, a note tells you if anything was already there or over the limit |
 | Summary for search engines | The meta description and social card text. Aim for 160 characters. If empty, the opening paragraph is used |
 | Cover image | Shown at the top of the post and used for social cards |
@@ -193,6 +194,30 @@ By default, HTML you type is shown as text, which keeps the site safe. If you ar
 
 Footnotes, reference-style links (`[text][ref]`), definition lists, and indented code blocks. Everything else in everyday Markdown works.
 
+## Entry formats
+
+A post can have a format, which decides what appears above its text. Themes show each one in their own way. The default theme shows media on the post page. The **Themestrap** theme also shows it on the home page, tag pages and search results.
+
+| Format | You provide | Shown as |
+| - | - | - |
+| Standard | An optional cover image | The picture |
+| Slider | Pictures, one address per line | A carousel with arrows and dots. Without JavaScript it scrolls sideways |
+| Gallery | Pictures, one address per line | A grid of thumbnails that opens in a lightbox |
+| Video | A YouTube or Vimeo link, or a link to an `.mp4`, `.webm`, `.ogv` or `.m4v` file | A 16:9 player |
+| Audio | A SoundCloud or Spotify link, or a link to an `.mp3`, `.ogg`, `.wav`, `.m4a` or `.flac` file | A player |
+| Embed | A CodePen link (YouTube, Vimeo, SoundCloud and Spotify links work too) | A 16:9 frame |
+
+Paste the normal link from the address bar or the Share menu. The blog turns it into the right player address for you, so you never paste embed code. Only these services (and files on your own site or any https address) are accepted. Anything else is refused with a message, which keeps a post from carrying a stray frame.
+
+The first picture of a slider or gallery is used for social cards when the post has no cover image.
+
+In a post file the format looks like this:
+
+```
+format: gallery
+media: ["/uploads/2026/10/a.jpg", "/uploads/2026/10/b.jpg"]
+```
+
 ## Front matter
 
 Each post file begins with a block between two `---` lines. The admin writes it for you, and you can write it by hand.
@@ -222,6 +247,8 @@ Your Markdown starts here.
 | `tags` | `[a, b]` or `a, b` | none |
 | `description` | Text | The summary, or the first paragraph |
 | `image` | A URL or a path starting with `/` | none |
+| `format` | `standard`, `slider`, `gallery`, `video`, `audio` or `embed` | `standard` |
+| `media` | A JSON list of addresses, such as `["/uploads/a.jpg", "/uploads/b.jpg"]`, or one address | none |
 
 Values with a colon followed by a space, a leading quote or bracket, or a leading or trailing space are wrapped in quotes by the admin. When writing by hand, wrap such values in double quotes: `title: "Note: a colon"`.
 
