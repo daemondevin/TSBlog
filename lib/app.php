@@ -6,6 +6,7 @@ require_once __DIR__ . '/compat.php';
 require_once __DIR__ . '/markdown.php';
 require_once __DIR__ . '/media.php';
 require_once __DIR__ . '/comments.php';
+require_once __DIR__ . '/analytics.php';
 require_once __DIR__ . '/store.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/version.php';
@@ -214,7 +215,14 @@ function ts_page(string $tpl, array $vars, array $meta = []): string
     $meta += ['title' => '', 'description' => ts_cfg('description'), 'canonical' => '', 'image' => '', 'type' => 'website',
         'noindex' => false, 'published' => '', 'modified' => '', 'tags' => [], 'jsonld' => null];
     $content = ts_view($theme . '/' . $tpl . '.php', $vars);
-    return ts_view($theme . '/layout.php', ['content' => $content, 'meta' => $meta, 'pages' => $GLOBALS['ts_nav_pages'] ?? []]);
+    $html = ts_view($theme . '/layout.php', ['content' => $content, 'meta' => $meta, 'pages' => $GLOBALS['ts_nav_pages'] ?? []]);
+    // Analytics: count this page view, and add the click counting script just before the end of the page
+    TSAnalytics::view($tpl, (string) ($GLOBALS['ts_path'] ?? '/'));
+    if (($tag = ts_analytics_tag()) !== '') {
+        $at = strripos($html, '</body>');
+        $html = $at === false ? $html . $tag : substr($html, 0, $at) . $tag . "\n" . substr($html, $at);
+    }
+    return $html;
 }
 
 // Turns a site relative path stored in a post (like /blog/uploads/a.jpg) into a full address

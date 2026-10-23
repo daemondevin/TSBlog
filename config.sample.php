@@ -18,6 +18,11 @@ return [
     // 'footer'         => '',
     // 'theme'          => 'default',
 
+    // Analytics: 'off' or 'on'. IP addresses: 'full', 'masked' (last part removed) or 'none'. Days to keep records.
+    // 'analytics'      => 'off',
+    // 'analytics_ip'   => 'full',
+    // 'analytics_days' => 90,
+
     // Comments: 'off', 'moderate' (you approve each one), 'open' (shown at once) or 'closed' (no new ones)
     // 'comments'       => 'off',
 

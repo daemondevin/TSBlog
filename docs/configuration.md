@@ -32,6 +32,14 @@ Changes take effect immediately. There is nothing to restart.
 | Time zone | Decides when scheduled posts go live and how dates are shown. Detected from your browser during setup |
 | Language code | The language of the pages and feed, such as `en`, `fr` or `pt-BR` |
 
+### Analytics
+
+| Setting | What it does |
+| - | - |
+| Count visits and clicks | Off by default. When on, page views and link clicks are recorded and shown under **Analytics** in the admin. See [Analytics](analytics.md) |
+| Visitor IP addresses | Keep the full address, a shortened one (the last part removed), or none. Visitors are counted either way |
+| Keep records for | 7 to 730 days. Older records are deleted automatically |
+
 ### Comments
 
 | Setting | What it does |
@@ -159,6 +167,9 @@ Every key:
 | `update_check` | `true` | Automatic checks when the admin is opened |
 | `update_public_key` | built in | The key update packages must be signed with. `config.php` only |
 | `update_allow_insecure` | `false` | Allow `http://localhost` update addresses, for testing. `config.php` only |
+| `analytics` | `off` | `off` or `on`. See [Analytics](analytics.md) |
+| `analytics_ip` | `full` | `full`, `masked` or `none` |
+| `analytics_days` | `90` | How long records are kept (7 to 730) |
 | `comments` | `off` | `off`, `moderate`, `open` or `closed`. See [Comments](comments.md) |
 | `reading_progress` | `true` | Progress bar on post pages |
 | `scroll_shadow` | `true` | “Keep reading” fade and edge shadows on post pages. Loads jQuery and one plugin on post pages |

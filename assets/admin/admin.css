@@ -147,3 +147,19 @@ details>.field{margin-bottom:.9rem}
 .crow .cact{display:flex;gap:.4rem;flex-wrap:wrap}
 .crow[data-status="spam"]{opacity:.7}
 @media(max-width:640px){.rows.comments li.crow{flex-direction:column}}
+.a-tools{display:flex;gap:.5rem;flex-wrap:wrap}
+.a-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:.8rem;margin:0 0 .6rem}
+.a-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem;display:flex;flex-direction:column;gap:.1rem}
+.a-card span{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}.a-card strong{font-size:1.8rem;line-height:1.2}.a-card small{color:var(--muted)}
+.a-note{font-size:.85rem;margin:.2rem 0 1.2rem}.a-foot{font-size:.8rem;margin:.6rem 0 0}
+.a-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;margin:0 0 1rem;min-width:0}.a-panel h2{font-size:1rem;margin:0 0 .7rem}
+.a-grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.a-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:860px){.a-grid2,.a-grid3{grid-template-columns:1fr}}
+.a-chart{width:100%;height:auto;display:block}.a-grid{stroke:var(--line);stroke-width:1}.a-axis{fill:var(--muted);font-size:11px}
+.a-views{fill:#93c5fd;background:#93c5fd}.a-vis{fill:#2563eb;background:#2563eb}.a-hit{fill:transparent}.a-hit:hover{fill:rgba(128,128,128,.12)}
+.a-legend{margin:.4rem 0 0;font-size:.8rem;color:var(--muted)}.a-legend i{display:inline-block;width:.7rem;height:.7rem;border-radius:2px;margin:0 .2rem 0 .6rem;vertical-align:-1px}
+.a-list{list-style:none;margin:0;padding:0}.a-list li{display:grid;grid-template-columns:1fr auto;gap:.1rem .8rem;padding:.35rem 0;border-bottom:1px solid var(--line);font-size:.92rem}.a-list li:last-child{border:0}
+.a-lbl{overflow-wrap:anywhere}.a-n{font-variant-numeric:tabular-nums;font-weight:600}.a-bar{grid-column:1/-1;height:3px;background:var(--line);border-radius:2px;overflow:hidden}.a-bar i{display:block;height:100%;background:#2563eb}
+.a-table{width:100%;border-collapse:collapse;font-size:.88rem}.a-table th{text-align:left;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;padding:.3rem .6rem .5rem 0}
+.a-table td{padding:.4rem .6rem .4rem 0;border-top:1px solid var(--line);vertical-align:top}.a-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.a-url{overflow-wrap:anywhere;max-width:22rem}.a-mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem}.a-scroll{overflow-x:auto}

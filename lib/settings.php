@@ -20,6 +20,9 @@ function ts_defaults(): array
         'feed_items' => 20, 'footer' => '', 'allow_html' => false, 'theme' => 'default',
         'reading_progress' => true,  // progress bar at the top of post pages
         'scroll_shadow' => true,     // "keep reading" fade on post pages (loads jQuery and one plugin on post pages)
+        'analytics' => 'off',        // off | on: page views and link clicks, shown in the admin
+        'analytics_ip' => 'full',    // full | masked | none: what is kept of a visitor's IP address
+        'analytics_days' => 90,      // how long records are kept
         'comments' => 'off',         // off | moderate | open | closed
         'pretty_urls' => 'auto',     // auto | on | off
         'post_files' => 'auto',      // auto | plain | protected

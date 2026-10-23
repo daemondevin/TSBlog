@@ -58,6 +58,7 @@ if ($viaQuery) {
     }
 }
 $seg = $path === '/' ? [] : explode('/', trim($path, '/'));
+$GLOBALS['ts_path'] = $path;
 $first = $seg[0] ?? '';
 
 // An update is being installed: a short pause beats a half updated page
@@ -152,6 +153,14 @@ if ($first === 'search' && count($seg) === 1) {
         'heading' => $q === '' ? 'Search' : count($found) . ' result' . (count($found) === 1 ? '' : 's') . ' for “' . $q . '”',
         'search' => $q,
     ], ['title' => 'Search · ' . $cfg['title'], 'noindex' => true]), 'text/html; charset=utf-8', 200, false);
+    exit;
+}
+
+// Link click counting (a tiny message from assets/track.js)
+if ($first === 'track' && count($seg) === 1) {
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') TSAnalytics::click($_POST);
+    http_response_code(204);
+    header('Cache-Control: no-store');
     exit;
 }
 

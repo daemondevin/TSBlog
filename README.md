@@ -15,7 +15,7 @@ That is the whole setup. It works on ordinary shared hosting with no root access
 ## What you get
 
 | Need | How |
-| - | - |
+| --- | --- |
 | Writing | A simple toolbar editor for everyone, or Markdown if you like it. Paste or drop pictures |
 | Settings | A Settings page for the name, time zone, look, and more. No files to edit |
 | Links | Pretty links (`/my-post`) when your server allows them, plain links otherwise. Chosen for you |
@@ -31,11 +31,12 @@ Requirements: PHP 8.1 or newer (every major host offers it, usually under “PHP
 ## Documentation
 
 | Guide | For |
-| - | - |
+| --- | --- |
 | [Getting started](docs/getting-started.md) | Upload, set up, write your first post |
 | [Writing](docs/writing.md) | The editor, Markdown reference, front matter |
 | [Settings](docs/configuration.md) | Every setting, plus the optional `config.php` for advanced control |
 | [Hosting and deployment](docs/deployment.md) | Shared hosting, what to do if something needs fixing, advanced server rules, backups, updating |
+| [Analytics](docs/analytics.md) | Page views, visitors, link clicks and IP addresses in the admin |
 | [Comments](docs/comments.md) | Turning on comments, moderating, spam protection |
 | [Themes](docs/themes.md) | Restyling and building your own theme |
 | [Storage](docs/storage.md) | Files or SQLite, protected files, where everything lives |

@@ -56,6 +56,22 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
       </select></div><?= $note('comments') ?>
     </div>
 
+    <h2 id="analytics">Analytics</h2>
+    <div class="grid2">
+      <div class="field"><span class="lbl" id="lbl-analytics">Count visits and clicks <span class="muted">(see them under Analytics)</span></span>
+        <div data-plugin-select class="manual"><select name="analytics"<?= $attr('analytics') ?>>
+          <?php foreach (['off' => 'Off', 'on' => 'On'] as $k => $label): ?><option value="<?= $k ?>"<?= $v('analytics') === $k ? ' selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?>
+        </select></div><?= $note('analytics') ?>
+      </div>
+      <div class="field"><span class="lbl" id="lbl-analytics_ip">Visitor IP addresses</span>
+        <div data-plugin-select class="manual"><select name="analytics_ip"<?= $attr('analytics_ip') ?>>
+          <?php foreach (['full' => 'Keep the full address', 'masked' => 'Keep a shortened address (last part removed)', 'none' => 'Do not keep addresses'] as $k => $label): ?><option value="<?= $k ?>"<?= $v('analytics_ip') === $k ? ' selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?>
+        </select></div><?= $note('analytics_ip') ?>
+      </div>
+      <label>Keep records for<input type="number" name="analytics_days" min="7" max="730" data-plugin-numberinput data-plugin-options='{"unit":"days"}' value="<?= (int) $v('analytics_days') ?>"<?= $attr('analytics_days') ?>><?= $note('analytics_days') ?></label>
+    </div>
+    <p class="muted">An IP address can identify a person, and some countries treat it as personal data. If your visitors are in the EU or UK, choose a shortened address or none, and say so in your privacy page.</p>
+
     <label class="check"><input type="checkbox" name="reading_progress" value="1"<?= $v('reading_progress') ? ' checked' : '' ?><?= $attr('reading_progress') ?>> Show a reading progress bar on posts
       <small class="muted">A thin bar at the top that fills as the reader works through the post.</small><?= $note('reading_progress') ?></label>
     <label class="check"><input type="checkbox" name="scroll_shadow" value="1"<?= $v('scroll_shadow') ? ' checked' : '' ?><?= $attr('scroll_shadow') ?>> Show a “keep reading” fade on posts

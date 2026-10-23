@@ -84,6 +84,10 @@ The built-in updater does not trust the network. Every release is signed with an
 - Anyone who can sign in can run script on your site. Only enable it when you are the sole author.
 - Public pages then permit `https:` frames and media in their Content Security Policy. Inline scripts still do not run, because the policy blocks them.
 
+## Analytics
+
+Analytics are off by default. When on, records live in guarded files in `data/` (they answer with an empty 404 if a server hands them out), are deleted after the retention period, and never leave your server. IP addresses can be shortened or not kept at all. Click records are sent by the visitor's browser with a time limited token, so anyone could submit false ones. The admin shows their text as plain text, never as links. Details are in [Analytics](analytics.md).
+
 ## Comments
 
 Comments are off by default. When on, every field is escaped on output and links carry `rel="nofollow ugc noopener"`. The public endpoint accepts only a form post with a valid token, a hidden trap field, a per visitor rate limit and length limits, and it never echoes visitor text back (messages come from a fixed list). Comments are stored in a guarded file in `data/`, and email addresses are never printed on the site. Details are in [Comments](comments.md).

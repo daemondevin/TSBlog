@@ -121,6 +121,9 @@ function ts_admin(TSStore $store, array $seg): void
             case 'probe':    ts_admin_probe(); return;
             case 'update':   ts_admin_update(); return;
             case 'comment':  ts_admin_comment(); return;
+            case 'analytics':
+                if (($_POST['do'] ?? '') === 'clear') { TSAnalytics::clear(); ts_json(['ok' => true]); }
+                ts_json(['ok' => false, 'errors' => ['Unknown action.']], 422);
             case 'render':
                 $b = preg_replace('/^[ \t]*<!--more-->[ \t]*$/m', "\n\n@@TSMORE@@\n\n", (string) ($_POST['body'] ?? ''));
                 ts_json(['ok' => true, 'html' => str_replace('<p>@@TSMORE@@</p>', '<hr data-more="1">', ts_render($b))]);
@@ -136,6 +139,16 @@ function ts_admin(TSStore $store, array $seg): void
         ts_admin_view('edit', ['post' => null, 'bare' => true], 'New post');
     } elseif ($action === 'edit' && isset($seg[1]) && ($post = $store->get($seg[1]))) {
         ts_admin_view('edit', ['post' => $post, 'bare' => true], 'Edit · ' . $post['title']);
+    } elseif ($action === 'analytics') {
+        $days = in_array((int) ($_GET['days'] ?? 30), [7, 30, 90, 365], true) ? (int) ($_GET['days'] ?? 30) : 30;
+        if (($seg[1] ?? '') === 'export') {
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="analytics-' . date('Y-m-d') . '.csv"');
+            header('Cache-Control: no-store');
+            TSAnalytics::csv($days);
+            exit;
+        }
+        ts_admin_view('analytics', ['r' => TSAnalytics::report($days), 'days' => $days, 'titles' => array_column($store->all(), 'title', 'slug')], 'Analytics');
     } elseif ($action === 'comments') {
         ts_admin_view('comments', ['items' => TSComments::all(), 'titles' => array_column($store->all(), 'title', 'slug')], 'Comments');
     } elseif ($action === 'settings') {
@@ -237,7 +250,7 @@ function ts_settings_clean(array $in, array $cfg): array
         if ($v < $min || $v > $max) { $err[] = "{$label} must be between {$min} and {$max}."; return; }
         $out[$k] = $v;
     };
-    $int('posts_per_page', 1, 50, 'Posts per page'); $int('feed_items', 1, 100, 'Feed items');
+    $int('posts_per_page', 1, 50, 'Posts per page'); $int('analytics_days', 7, 730, 'Keep analytics for'); $int('feed_items', 1, 100, 'Feed items');
 
     $pick = function ($k, array $allowed, $label) use ($in, $locked, &$out, &$err) {
         if (in_array($k, $locked, true) || !isset($in[$k])) return;
@@ -252,6 +265,8 @@ function ts_settings_clean(array $in, array $cfg): array
     $themes = array_map('basename', glob(TS_ROOT . '/theme/*', GLOB_ONLYDIR) ?: []);
     $pick('theme', $themes, 'Theme');
     $pick('comments', ['off', 'moderate', 'open', 'closed'], 'Comments');
+    $pick('analytics', ['off', 'on'], 'Analytics');
+    $pick('analytics_ip', ['full', 'masked', 'none'], 'Visitor IP addresses');
 
     if (!in_array('language', $locked, true) && isset($in['language'])) {
         $l = trim((string) $in['language']);

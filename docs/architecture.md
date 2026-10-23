@@ -21,6 +21,7 @@ lib/
   app.php              URLs, HTTP, sessions, CSRF, feed, sitemap
   settings.php         settings layers, private data files, folder setup, health checks
   store.php            the store interface and both drivers
+  analytics.php        lite analytics: monthly guarded logs, bot and author filtering, reports, CSV
   comments.php         lite comments: storage in data/comments.php, form checks, thread and section markup
   media.php            entry formats: validates media addresses and builds safe players
   markdown.php         the Markdown renderer
@@ -116,6 +117,7 @@ The same script fetches `content/ts-probe.txt`. If the text `tsblog-private-prob
 | `/sitemap.xml` | Posts, pages and tags |
 | `/robots.txt` | Allows crawling, blocks `/admin` and `/search`, points to the sitemap |
 | `POST /comment` | Submit a comment (a form post, or `X-Requested-With: fetch` for JSON). Answers with a redirect or JSON, never reflecting visitor text |
+| `POST /track` | Records a link click (sent by `assets/track.js`). Always answers `204` |
 | `/ts-probe` | Plain text used by the setup test |
 | `/{address}` | One post or page |
 | anything else | The 404 page |
@@ -137,11 +139,13 @@ Everything under `/admin` is protected. Unsigned visitors see the sign-in form, 
 | `GET /admin/edit/{address}` | Edit a post |
 | `GET /admin/settings` | Settings page, including health |
 | `GET /admin/comments` | Comment moderation, filter with `?show=pending\|approved\|spam` |
+| `GET /admin/analytics` | Analytics page. `?days=7\|30\|90\|365`. `/admin/analytics/export` downloads a CSV |
 | `GET /admin/backup` | Download a zip of posts, pictures and settings |
 | `POST /admin/setup` | First-run setup. Only works when no password exists |
 | `POST /admin/login`, `/admin/logout` | Sign in and out |
 | `POST /admin/save`, `/admin/delete` | Create, update, delete. JSON |
 | `POST /admin/comment` | Approve, mark as spam or delete one comment (`id`, `do`). JSON |
+| `POST /admin/analytics` | `do=clear` deletes all analytics records. JSON |
 | `POST /admin/upload` | Upload a picture. JSON with its URL |
 | `POST /admin/render` | Markdown to HTML for the preview and Simple mode. Turns `<!--more-->` into `<hr data-more>` |
 | `POST /admin/settings`, `/admin/password` | Save settings, change password |
