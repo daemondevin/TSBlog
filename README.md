@@ -36,6 +36,7 @@ Requirements: PHP 8.1 or newer (every major host offers it, usually under “PHP
 | [Writing](docs/writing.md) | The editor, Markdown reference, front matter |
 | [Settings](docs/configuration.md) | Every setting, plus the optional `config.php` for advanced control |
 | [Hosting and deployment](docs/deployment.md) | Shared hosting, what to do if something needs fixing, advanced server rules, backups, updating |
+| [Comments](docs/comments.md) | Turning on comments, moderating, spam protection |
 | [Themes](docs/themes.md) | Restyling and building your own theme |
 | [Storage](docs/storage.md) | Files or SQLite, protected files, where everything lives |
 | [Updates](docs/updates.md) | Installing updates, and publishing releases |

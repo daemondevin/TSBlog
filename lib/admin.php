@@ -120,6 +120,7 @@ function ts_admin(TSStore $store, array $seg): void
             case 'password': ts_admin_password(); return;
             case 'probe':    ts_admin_probe(); return;
             case 'update':   ts_admin_update(); return;
+            case 'comment':  ts_admin_comment(); return;
             case 'render':
                 $b = preg_replace('/^[ \t]*<!--more-->[ \t]*$/m', "\n\n@@TSMORE@@\n\n", (string) ($_POST['body'] ?? ''));
                 ts_json(['ok' => true, 'html' => str_replace('<p>@@TSMORE@@</p>', '<hr data-more="1">', ts_render($b))]);
@@ -135,6 +136,8 @@ function ts_admin(TSStore $store, array $seg): void
         ts_admin_view('edit', ['post' => null, 'bare' => true], 'New post');
     } elseif ($action === 'edit' && isset($seg[1]) && ($post = $store->get($seg[1]))) {
         ts_admin_view('edit', ['post' => $post, 'bare' => true], 'Edit · ' . $post['title']);
+    } elseif ($action === 'comments') {
+        ts_admin_view('comments', ['items' => TSComments::all(), 'titles' => array_column($store->all(), 'title', 'slug')], 'Comments');
     } elseif ($action === 'settings') {
         ts_admin_view('settings', ['errors' => [], 'values' => []], 'Settings');
     } elseif ($action === 'backup') {
@@ -157,6 +160,7 @@ function ts_admin_save(TSStore $store): void
     }
     try {
         $store->save($post, $old);
+        if ($old && $old !== $post['slug']) TSComments::renameSlug($old, $post['slug']);
     } catch (Throwable $e) {
         ts_log($e->getMessage());
         ts_json(['ok' => false, 'errors' => [$e->getMessage()]], 500);
@@ -172,7 +176,22 @@ function ts_admin_delete(TSStore $store): void
 {
     $slug = (string) ($_POST['slug'] ?? '');
     if (!$store->remove($slug)) ts_json(['ok' => false, 'errors' => ['Could not delete that post.']], 404);
+    try { TSComments::deleteForSlug($slug); } catch (Throwable $e) { ts_log($e->getMessage()); }
     ts_json(['ok' => true, 'redirect' => ts_url('admin')]);
+}
+
+function ts_admin_comment(): void
+{
+    $id = (int) ($_POST['id'] ?? 0);
+    $do = (string) ($_POST['do'] ?? '');
+    if (!TSComments::find($id)) ts_json(['ok' => false, 'errors' => ['That comment no longer exists.']], 404);
+    try {
+        $ok = $do === 'delete' ? TSComments::delete($id) : TSComments::setStatus($id, $do === 'approve' ? 'approved' : ($do === 'spam' ? 'spam' : ''));
+    } catch (Throwable $e) {
+        ts_json(['ok' => false, 'errors' => [$e->getMessage()]], 500);
+    }
+    if (!$ok) ts_json(['ok' => false, 'errors' => ['Nothing was changed.']], 422);
+    ts_json(['ok' => true, 'pending' => TSComments::pending()]);
 }
 
 function ts_admin_upload(): void
@@ -232,6 +251,7 @@ function ts_settings_clean(array $in, array $cfg): array
     $pick('timezone', DateTimeZone::listIdentifiers(), 'Time zone');
     $themes = array_map('basename', glob(TS_ROOT . '/theme/*', GLOB_ONLYDIR) ?: []);
     $pick('theme', $themes, 'Theme');
+    $pick('comments', ['off', 'moderate', 'open', 'closed'], 'Comments');
 
     if (!in_array('language', $locked, true) && isset($in['language'])) {
         $l = trim((string) $in['language']);
@@ -350,7 +370,7 @@ function ts_admin_backup(): void
     };
     if (is_dir($p['content'])) $add($p['content'], 'content/');
     if (is_dir($p['uploads'])) $add($p['uploads'], 'uploads/');
-    foreach (['settings.php', 'admin.php', 'state.php'] as $f) if (is_file($p['data'] . '/' . $f)) $zip->addFile($p['data'] . '/' . $f, 'data/' . $f);
+    foreach (['settings.php', 'admin.php', 'state.php', 'comments.php'] as $f) if (is_file($p['data'] . '/' . $f)) $zip->addFile($p['data'] . '/' . $f, 'data/' . $f);
     foreach (glob($p['data'] . '/blog-*.db') ?: [] as $f) $zip->addFile($f, 'data/' . basename($f));
     $zip->close();
     header('Content-Type: application/zip');

@@ -155,10 +155,26 @@ if ($first === 'search' && count($seg) === 1) {
     exit;
 }
 
+// Comments (form posts only)
+if ($first === 'comment' && count($seg) === 1) {
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') ts_redirect(ts_url());
+    $slug = (string) ($_POST['post'] ?? '');
+    $wantsJson = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
+    $res = TSStore::validSlug($slug) ? TSComments::submit($slug, $_POST, $store) : ['code' => 'post', 'comment' => null];
+    $msgs = TSComments::messages();
+    $good = in_array($res['code'], ['ok', 'pending'], true);
+    if ($wantsJson) {
+        ts_json(['ok' => $good, 'code' => $res['code'], 'message' => $msgs[$res['code']] ?? $msgs['save'],
+            'count' => $good ? TSComments::count($slug) : null], $good ? 200 : 422);
+        exit;
+    }
+    ts_redirect(ts_url($slug, ['c' => $res['code']]) . '#comments');
+}
+
 // Feed, sitemap, robots
 if ($path === '/feed.xml') {
     $posts = array_slice($store->published(), 0, (int) $cfg['feed_items']);
-    foreach ($posts as &$p) $p['html'] = ts_render($store->get($p['slug'])['body'] ?? '');
+    foreach ($posts as &$p) $p['html'] = ts_render($store->get($p['slug'])['body'] ?? '', 'plain');
     unset($p);
     ts_send(ts_feed($posts), 'application/rss+xml; charset=utf-8');
     exit;
@@ -200,7 +216,7 @@ if (count($seg) === 1 && TSStore::validSlug($first)) {
         'publisher' => ['@type' => 'Organization', 'name' => $cfg['title']],
     ];
     if ($img) $ld['image'] = $img;
-    if (!empty($cfg['scroll_shadow'])) ts_headers(false, true);
+    if (!empty($cfg['scroll_shadow']) || strpos($post['html'], 'data-plugin-alert') !== false) ts_headers(false, true);
     ts_send(ts_page('post', ['post' => $post, 'prev' => $prev, 'next' => $next, 'live' => $live], [
         'title' => $post['title'] . ' · ' . $cfg['title'], 'description' => $desc, 'canonical' => ts_abs($post['slug']),
         'image' => $img, 'type' => $post['type'] === 'post' ? 'article' : 'website', 'noindex' => !$live,

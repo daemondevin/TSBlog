@@ -16,6 +16,7 @@
   <a class="brand" href="<?= e(ts_url('admin')) ?>"><?= e(ts_cfg('title')) ?> <span>admin</span></a>
   <nav>
     <a href="<?= e(ts_url()) ?>" target="_blank" rel="noopener">View site <i class="fas fa-arrow-up-right-from-square"></i></a>
+    <?php if (TSComments::enabled() || TSComments::pending()): $pc = TSComments::pending(); ?><a href="<?= e(ts_url('admin/comments')) ?>">Comments<?php if ($pc): ?> <span class="badge" id="pending-badge"><?= $pc ?></span><?php endif; ?></a><?php endif; ?>
     <a href="<?= e(ts_url('admin/settings')) ?>">Settings</a>
     <button type="button" class="icon-btn" data-theme-toggle aria-label="Toggle dark mode" title="Toggle dark mode"><i class="fas fa-circle-half-stroke"></i></button>
     <form method="post" action="<?= e(ts_url('admin/logout')) ?>"><input type="hidden" name="_csrf" value="<?= e(ts_csrf()) ?>"><button class="link-btn" type="submit">Sign out</button></form>

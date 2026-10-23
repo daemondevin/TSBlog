@@ -21,9 +21,17 @@
   <span class="r"><?php if ($next): ?><small>Newer</small><a href="<?= e(ts_url($next['slug'])) ?>" rel="next"><?= e($next['title']) ?> &rarr;</a><?php endif; ?></span>
 </nav>
 <?php endif; ?>
+<?php $comments = !empty($live) ? ts_comments_section($post) : ''; echo $comments; ?>
+<?php $hasAlerts = strpos($post['html'], 'data-plugin-alert') !== false; ?>
 <?php if (ts_cfg('reading_progress')): ?><script src="<?= e(ts_asset('reading.js')) ?>" defer></script><?php endif; ?>
+<?php if (ts_cfg('scroll_shadow') || $hasAlerts): ?><script src="<?= e(ts_asset('vendor/jquery.min.js')) ?>" defer></script><?php endif; ?>
+<?php if ($hasAlerts): ?>
+<script src="<?= e(ts_asset('vendor/namespace.js')) ?>" defer></script>
+<script src="<?= e(ts_asset('vendor/themestrap.plugin.alert.js')) ?>" defer></script>
+<script src="<?= e(ts_asset('alerts.js')) ?>" defer></script>
+<?php endif; ?>
 <?php if (ts_cfg('scroll_shadow')): ?>
-<script src="<?= e(ts_asset('vendor/jquery.min.js')) ?>" defer></script>
 <script src="<?= e(ts_asset('vendor/themestrap.plugin.scrollshadow.js')) ?>" defer></script>
 <script src="<?= e(ts_asset('post.js')) ?>" defer></script>
 <?php endif; ?>
+<?php if ($comments !== '' && TSComments::accepting()): ?><script src="<?= e(ts_asset('comments.js')) ?>" defer></script><?php endif; ?>

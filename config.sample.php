@@ -18,6 +18,9 @@ return [
     // 'footer'         => '',
     // 'theme'          => 'default',
 
+    // Comments: 'off', 'moderate' (you approve each one), 'open' (shown at once) or 'closed' (no new ones)
+    // 'comments'       => 'off',
+
     // Reading aids on post pages
     // 'reading_progress' => true,                 // progress bar at the top
     // 'scroll_shadow'    => true,                 // "keep reading" fade (loads jQuery and one plugin)

@@ -32,6 +32,14 @@ Changes take effect immediately. There is nothing to restart.
 | Time zone | Decides when scheduled posts go live and how dates are shown. Detected from your browser during setup |
 | Language code | The language of the pages and feed, such as `en`, `fr` or `pt-BR` |
 
+### Comments
+
+| Setting | What it does |
+| - | - |
+| Comments | **Off** (the default): no comments are shown or accepted. **On, I approve each comment first:** new comments wait in the admin until you approve them. **On, show comments right away:** comments appear at once, except any with more than two links, which wait for approval. **Closed:** existing comments stay visible, no new ones are accepted |
+
+See [Comments](comments.md) for how they work and how they are protected from spam.
+
 ### Reading aids
 
 | Setting | What it does |
@@ -151,6 +159,7 @@ Every key:
 | `update_check` | `true` | Automatic checks when the admin is opened |
 | `update_public_key` | built in | The key update packages must be signed with. `config.php` only |
 | `update_allow_insecure` | `false` | Allow `http://localhost` update addresses, for testing. `config.php` only |
+| `comments` | `off` | `off`, `moderate`, `open` or `closed`. See [Comments](comments.md) |
 | `reading_progress` | `true` | Progress bar on post pages |
 | `scroll_shadow` | `true` | “Keep reading” fade and edge shadows on post pages. Loads jQuery and one plugin on post pages |
 | `admin_password_hash` | empty | A hash, from `php -r "echo password_hash('secret', PASSWORD_DEFAULT);"`. Overrides the stored password |

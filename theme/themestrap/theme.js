@@ -1,17 +1,20 @@
 // Themestrap theme: dark mode, sticky header, menu, tabs, slider and lightbox. No dependencies.
 // The first part runs straight away from the head so the right colors show before the page paints.
 (function () {
-  var d = document.documentElement, k = 'tsblog-theme', s = null;
+  var d = document.documentElement, k = 'tsblog-theme', s = null, mq = matchMedia('(prefers-color-scheme: dark)');
   try { s = localStorage.getItem(k); } catch (e) {}
-  function apply(t) { d.setAttribute('data-theme', t); d.setAttribute('data-bs-theme', t); }
-  if (s) apply(s);
+  function isDark() { var c = d.getAttribute('data-theme'); return c ? c === 'dark' : mq.matches; }
+  // data-bs-theme and the "dark" class are for Bootstrap and Themestrap components (PluginAlert styles from html.dark)
+  function sync() { d.classList.toggle('dark', isDark()); d.setAttribute('data-bs-theme', isDark() ? 'dark' : 'light'); }
+  if (s) d.setAttribute('data-theme', s);
+  sync();
+  if (mq.addEventListener) mq.addEventListener('change', sync);
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-theme-toggle]');
     if (!b) return;
-    var cur = d.getAttribute('data-theme');
-    var dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    var next = dark ? 'light' : 'dark';
-    apply(next);
+    var next = isDark() ? 'light' : 'dark';
+    d.setAttribute('data-theme', next);
+    sync();
     try { localStorage.setItem(k, next); } catch (e2) {}
   });
 })();

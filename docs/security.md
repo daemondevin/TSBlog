@@ -84,11 +84,14 @@ The built-in updater does not trust the network. Every release is signed with an
 - Anyone who can sign in can run script on your site. Only enable it when you are the sole author.
 - Public pages then permit `https:` frames and media in their Content Security Policy. Inline scripts still do not run, because the policy blocks them.
 
+## Comments
+
+Comments are off by default. When on, every field is escaped on output and links carry `rel="nofollow ugc noopener"`. The public endpoint accepts only a form post with a valid token, a hidden trap field, a per visitor rate limit and length limits, and it never echoes visitor text back (messages come from a fixed list). Comments are stored in a guarded file in `data/`, and email addresses are never printed on the site. Details are in [Comments](comments.md).
+
 ## Not included
 
 These are left out on purpose, to keep the system small:
 
 - Multiple users, roles, two-factor authentication and password reset by email. (A password reset by file is described in [Troubleshooting](troubleshooting.md#i-forgot-my-password).)
-- Comments. Comment systems are the largest source of spam and vulnerabilities on blogs. Link to a discussion elsewhere, or add one in your theme.
 - Redirecting HTTP to HTTPS. Do it in your host's control panel.
 - Rate limiting of public pages. Use your host or a CDN.

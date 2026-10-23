@@ -137,3 +137,13 @@ details>.field{margin-bottom:.9rem}
 
 #f-media{font:.85rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical}
 .details [hidden]{display:none!important}
+.badge{display:inline-block;min-width:1.2rem;padding:0 .35rem;border-radius:99px;background:var(--accent,#2563eb);color:#fff;font-size:.72rem;font-weight:700;line-height:1.2rem;text-align:center}
+.tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin:0 0 1rem}
+.tabs a{padding:.35rem .8rem;border:1px solid var(--line);border-radius:99px;text-decoration:none;color:inherit;font-size:.9rem}
+.tabs a.on{background:var(--panel);border-color:currentColor;font-weight:600}
+.rows.comments li.crow{align-items:flex-start;padding:.8rem}
+.crow .cmain{flex:1;min-width:0}.crow .chead{display:flex;flex-wrap:wrap;gap:.2rem .7rem;align-items:center;font-size:.9rem}
+.crow .cbody{margin-top:.4rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.crow .cact{display:flex;gap:.4rem;flex-wrap:wrap}
+.crow[data-status="spam"]{opacity:.7}
+@media(max-width:640px){.rows.comments li.crow{flex-direction:column}}

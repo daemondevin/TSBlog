@@ -122,6 +122,9 @@ Posts in lists have these keys: `slug`, `title`, `date`, `updated`, `status`, `t
 | `TSMedia::html($media, 'class')` | Safe markup for a resolved player. Classes are `class`, `class-frame`, `class-16x9` and so on, for you to style |
 | `TSMedia::firstImage($post)` | The cover image, or the first picture of a slider or gallery |
 
+| `ts_comments_section($post)` | The whole comments section (list and form) for a post, or an empty string when comments are off. Call it in `post.php` for live posts. Style the `tsc-*` classes. See [Comments](comments.md) |
+| `TSComments::accepting()` | `true` when the form is shown. Load your `comments.js` only then |
+
 `$GLOBALS['ts_admin']` is `true` when the author is signed in, which the default theme uses to show an Edit link.
 
 ## Examples
@@ -177,6 +180,10 @@ The markup and class names (`.progress-reading .progress-bar`) match the Themest
 ```
 
 `--ts-ss-fade` must match the page background, or the fade shows as a coloured band. To leave these features out of your own theme, drop the markup and the `<script>` tags from `post.php`.
+
+## Alerts
+
+A post can contain GitHub style alerts (`> [!NOTE]`). The renderer outputs a `div.alert` with `data-plugin-alert` and Themestrap's `PluginAlert` upgrades it. A theme that wants the upgrade loads, on posts containing `data-plugin-alert` only, `vendor/jquery.min.js`, `vendor/namespace.js`, `vendor/themestrap.plugin.alert.js` and a small `alerts.js` that initializes them. Both included themes show how. Without those scripts the `.alert` still reads fine if you give it a border and background. `PluginAlert` follows dark mode through the `dark` class on `<html>`, so a theme with a dark switch should set that class too.
 
 ## Things to leave alone in `layout.php`
 

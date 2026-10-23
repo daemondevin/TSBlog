@@ -91,6 +91,7 @@ Everything here is private, and every `.php` file starts with a guard line so it
 | - | - |
 | `settings.php` | What you saved on the Settings page |
 | `admin.php` | Your password, hashed. The password itself is never stored |
+| `comments.php` | Every comment, whichever storage option you use. Included in the backup. Delete it to remove all comments |
 | `state.php` | What the blog learned about your server (pretty links, private files) and the SQLite file name |
 | `login.php` | Failed sign-in counts, for the lockout |
 | `index.cache.php` | A quick index of your posts. Rebuilt on its own, safe to delete |

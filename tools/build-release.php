@@ -18,6 +18,9 @@
 //       [--notes "What changed"] [--notes-file CHANGES.txt] [--min-php 8.1.0] [--out dist]
 //       Writes to dist/:
 //         tsblog-1.0.1.zip          the update package (what the updater downloads)
+//   --bridge  leaves theme/themestrap/ out of the UPDATE package (the fresh install still has it). Use it for the
+//             first release after a blog's updater learns about a new folder: older updaters reject files in folders
+//             they do not know. Publish the bridge first, then a normal release that includes the new folder.
 //         tsblog-1.0.1-install.zip  a fresh install, with the address and key already built in
 //         latest.json               the manifest. Upload all three files to --url
 //
@@ -26,7 +29,7 @@
 if (PHP_SAPI !== 'cli') { http_response_code(403); exit; }
 
 $root = dirname(__DIR__);
-$opt = getopt('', ['keygen', 'show-key', 'rotate-to:', 'allow-new-key', 'github:', 'version:', 'url:', 'key:', 'notes:', 'notes-file:', 'min-php:', 'out:']);
+$opt = getopt('', ['keygen', 'show-key', 'rotate-to:', 'allow-new-key', 'github:', 'version:', 'url:', 'key:', 'notes:', 'notes-file:', 'min-php:', 'out:', 'bridge']);
 $fail = function (string $m) { fwrite(STDERR, "Error: $m\n"); exit(1); };
 
 $home = getenv('USERPROFILE') ?: (getenv('HOME') ?: '');
@@ -201,7 +204,17 @@ function write_zip(string $path, array $contents, string $release, array $extra 
 }
 
 $updateZip = "$out/tsblog-$version.zip";
-write_zip($updateZip, $contents, $release);
+$bridge = isset($opt['bridge']);
+$upContents = $contents;
+$upRelease = $release;
+if ($bridge) {
+    $upContents = array_filter($contents, fn($rel) => strpos($rel, 'theme/themestrap/') !== 0, ARRAY_FILTER_USE_KEY);
+    $h = [];
+    foreach ($upContents as $rel => $data) $h[$rel] = hash('sha256', $data);
+    ksort($h);
+    $upRelease = json_encode(['name' => 'Themestrap Blog', 'version' => $version, 'released' => date('Y-m-d'), 'files' => $h], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+}
+write_zip($updateZip, $upContents, $upRelease);
 
 // A fresh install also carries the starter posts, the private folders and the server files
 $extra = [];
@@ -226,7 +239,7 @@ if ($histFile) {
 }
 echo "Built version $version in $out/\n";
 echo "Signed with key $signerId" . (isset($opt['rotate-to']) ? "; blogs will trust key " . $keyId($bakePublic) . " from this release on" : "") . "\n";
-echo "  tsblog-$version.zip           update package (" . count($contents) . " files)\n";
+echo "  tsblog-$version.zip           update package (" . count($upContents) . " files" . ($bridge ? ", bridge: without theme/themestrap/" : "") . ")\n";
 echo "  tsblog-$version-install.zip   fresh install with the update address and key built in\n";
 echo "  latest.json                    manifest, signed\n";
 echo "Upload all three files to $url/\n";

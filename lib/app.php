@@ -5,6 +5,7 @@ defined('TS_ROOT') or exit;
 require_once __DIR__ . '/compat.php';
 require_once __DIR__ . '/markdown.php';
 require_once __DIR__ . '/media.php';
+require_once __DIR__ . '/comments.php';
 require_once __DIR__ . '/store.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/version.php';
@@ -64,7 +65,7 @@ function ts_origin(): string { return preg_replace('#^(https?://[^/]+).*$#', '$1
 
 function ts_date(string $d, ?string $fmt = null): string { return date($fmt ?: ts_cfg('date_format'), strtotime($d)); }
 
-function ts_render(string $md): string { return TSMarkdown::render($md, (bool) ts_cfg('allow_html')); }
+function ts_render(string $md, string $alerts = 'plugin'): string { return TSMarkdown::render($md, (bool) ts_cfg('allow_html'), $alerts); }
 
 function ts_asset(string $file): string
 {

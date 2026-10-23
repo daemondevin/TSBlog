@@ -7,7 +7,7 @@ defined('TS_ROOT') or exit;
 abstract class TSStore
 {
     public const RESERVED = ['ts-probe', 'admin', 'tag', 'tags', 'page', 'search', 'feed', 'feed.xml', 'sitemap.xml',
-        'robots.txt', 'uploads', 'theme', 'assets', 'data', 'content', 'lib', 'index', 'api'];
+        'robots.txt', 'uploads', 'theme', 'assets', 'data', 'content', 'lib', 'index', 'api', 'comment', 'comments'];
 
     abstract public function index(): array;           // every post, without 'body'
     abstract public function get(string $slug): ?array; // one post, with 'body'

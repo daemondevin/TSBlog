@@ -50,6 +50,12 @@ $probe = json_encode(['pretty' => ts_cfg('base') . '/ts-probe', 'exposed' => ts_
       </label>
     </div>
 
+    <div class="field"><span class="lbl" id="lbl-comments">Comments <span class="muted">(readers can reply to your posts)</span></span>
+      <div data-plugin-select class="manual"><select name="comments"<?= $attr('comments') ?>>
+        <?php foreach (['off' => 'Off', 'moderate' => 'On, I approve each comment first', 'open' => 'On, show comments right away', 'closed' => 'Closed (keep existing comments, accept no new ones)'] as $k => $label): ?><option value="<?= $k ?>"<?= $v('comments') === $k ? ' selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?>
+      </select></div><?= $note('comments') ?>
+    </div>
+
     <label class="check"><input type="checkbox" name="reading_progress" value="1"<?= $v('reading_progress') ? ' checked' : '' ?><?= $attr('reading_progress') ?>> Show a reading progress bar on posts
       <small class="muted">A thin bar at the top that fills as the reader works through the post.</small><?= $note('reading_progress') ?></label>
     <label class="check"><input type="checkbox" name="scroll_shadow" value="1"<?= $v('scroll_shadow') ? ' checked' : '' ?><?= $attr('scroll_shadow') ?>> Show a “keep reading” fade on posts

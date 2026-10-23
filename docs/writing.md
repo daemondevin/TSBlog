@@ -120,6 +120,20 @@ Use `##` and below inside a post. The post title is already the page's top-level
 https://bare-urls-link-themselves.com
 ```
 
+#### Reference links
+
+Put the address once and use it as often as you like. The definition can sit anywhere in the post, and it does not show up on the page:
+
+```
+Read the [docs][d] or just [d].
+![A logo][logo]
+
+[d]: https://example.com/docs "Optional title"
+[logo]: /uploads/logo.png
+```
+
+Names are not case sensitive. A name with no definition stays as plain text.
+
 Only `http`, `https`, `mailto` and `tel` links are allowed, and only `http` and `https` images. Anything else, such as `javascript:`, is dropped. Images load lazily.
 
 ### Lists
@@ -142,6 +156,29 @@ Only `http`, `https`, `mailto` and `tel` links are allowed, and only `http` and 
 > A quote that can contain **formatting**
 > and several lines.
 ```
+
+#### Alerts
+
+GitHub style alerts turn a quote into a highlighted box. Start the quote with one of five markers:
+
+```
+> [!NOTE]
+> Useful information.
+
+> [!TIP]
+> Helpful advice.
+
+> [!IMPORTANT]
+> Key information.
+
+> [!WARNING]
+> Urgent, needs attention.
+
+> [!CAUTION]
+> Possible negative outcomes.
+```
+
+On the site they are drawn with Themestrap's `PluginAlert` (the icon, title and colors, in light and dark). The script only loads on posts that contain an alert. Without JavaScript they still show as a plain colored box. In the feed they are ordinary quotes with the title in bold. A quote that does not start with a marker stays a normal quote.
 
 ### Code
 
@@ -192,7 +229,7 @@ By default, HTML you type is shown as text, which keeps the site safe. If you ar
 
 ### Not supported
 
-Footnotes, reference-style links (`[text][ref]`), definition lists, and indented code blocks. Everything else in everyday Markdown works.
+Footnotes, definition lists, and indented code blocks. Everything else in everyday Markdown works.
 
 ## Entry formats
 

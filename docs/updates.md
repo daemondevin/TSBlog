@@ -121,6 +121,17 @@ If a key is ever published or committed, treat it as compromised and change keys
 
 `--key PATH` uses a key somewhere other than the default. `--github OWNER/REPO` is a shortcut for the GitHub folder address, and the tool prints the address to use in Settings when it finishes. `--notes` appears in the Updates card before anyone installs. `--notes-file` reads it from a file. `--min-php` sets the oldest PHP the release supports (default 8.1.0).
 
+### When a release adds a new folder
+
+A blog only accepts files in the folders its own updater knows about, and that is decided by the code it is running now, not the code in the update. So when a release adds a folder to the list (for example `theme/themestrap/`, added in 1.1.0), blogs still on the older updater refuse the whole update with “tried to change … which updates are never allowed to touch”. Nothing is changed when that happens.
+
+Publish it in two steps:
+
+1. A bridge release that carries the new updater but leaves the new folder out: `php tools/build-release.php --version 1.0.1 --bridge …`
+2. The real release, built normally, as `1.1.0`.
+
+A blog on 1.0.0 installs 1.0.1, which teaches it about the folder, and then installs 1.1.0 with everything in it. Fresh install zips always include the folder.
+
 ### Where to host the files
 
 Anywhere that serves static files over HTTPS: your own site, object storage, or a GitHub release. The package must be on the same host as `latest.json`.
